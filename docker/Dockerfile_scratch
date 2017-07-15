@@ -1,0 +1,50 @@
+# CGO_ENABLED=1 GOOS=linux go build --ldflags '-extldflags "-static"' -installsuffix cgo -o server.bin server.go
+# docker cp arcrestgo:/usr/local/go/src/github.com/traderboy/arcrestgo/server.bin docker
+
+# docker build –t traderboy/arcrestserver -f docker/Dockerfile_scratch .
+# docker run -d -p 80:80 -p 443:443 -e HTTPS_PORT=443 -e HTTP_PORT=80 --name arcrestserver traderboy/arcrestserver
+FROM scratch
+
+#RUN mkdir /app
+
+ADD catalogs /catalogs
+ADD dist /dist
+ADD ssl /ssl
+ADD arcrest.sqlite /
+ADD docker/server.bin /
+ADD index.html /
+
+WORKDIR /
+
+CMD ["./server.bin","-root catalogs","-file"]
+
+
+#FROM postgres:9.5
+#FROM golang:onbuild
+#$ docker build –t yourname/hello-go .
+#$ docker run –p 8000:8000 –d yourname/hello-go
+
+#FROM golang:1.7
+#RUN mkdir /app
+#ADD docker/server.go /app 
+#ADD structs /app/
+#ADD routes /app
+#ADD config /app
+#ADD docker/config.go /app/config
+#ADD catalogs /app
+#ADD dist /app
+#ADD sha256 /app
+
+
+#WORKDIR /app
+# Build the outyet command inside the container.
+# (You may fetch or manage dependencies here,
+# either manually or with a tool like "godep".)
+#RUN go install github.com/traderboy/arcrestgo
+#RUN go build ./server.go
+
+#CMD ["./server"]
+#ADD myapp /app/
+#ENTRYPOINT ["./server"]
+
+#EXPOSE 8080
