@@ -30,7 +30,13 @@ type JSONConfig struct {
 	PG         string                                                  `json:pg`
 	SqliteDb   string                                                  `json:sqliteDb`
 	DataSource string                                                  `json:dataSource`
-	RootName   string                                                  `json:`
+	RootName   string                                                  `json:rootName`
+	RootPath   string                                                  `json:rootPath`
+	Pem        string                                                  `json:pemPath`
+	Cert       string                                                  `json:certPath`
+	HttpPort   string                                                  `json:httpPort`
+	HttpsPort  string                                                  `json:httpsPort`
+
 	//Services map[string]map[string]Service
 	//map[string]Service
 }

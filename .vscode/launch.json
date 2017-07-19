@@ -2,6 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug Go",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}",
+            "env": {},
+            "args" : [],
+            //"args" : ["-pgsql","user=postgres dbname=gis host=192.168.99.100","-root","D:/workspace/go/src/github.com/traderboy/arcrestgo/catalogs"],
+            //"args": ["-file","-root","D:/workspace/go/src/github.com/traderboy/arcrestgo/catalogs"],
+            //"args": ["D:\\workspace\\go\\src\\github.com\\traderboy\\arcrestgo\\services"],
+            "showLog": true
+        },
+        {
             "name": "Launch",
             "type": "go",
             "request": "launch",

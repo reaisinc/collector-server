@@ -14,14 +14,9 @@ import (
 
 	_ "github.com/lib/pq"
 	sqlite3 "github.com/mattn/go-sqlite3"
-	structs "github.com/traderboy/arcrestgo/structs"
+	structs "github.com/traderboy/collector-server/structs"
 )
 
-//"github.com/traderboy/arcrestgo/config"
-//_ "github.com/mattn/go-sqlite3"
-//_ "github.com/traderboy/arcrestgo/controllers"
-//_ "github.com/traderboy/arcrestgo/models"
-//var DbSource = "sqlite3"
 const (
 	PGSQL   = 1
 	SQLITE3 = 2
@@ -30,7 +25,6 @@ const (
 
 var Catalogs map[string]structs.Catalog
 
-//map[string]Service
 var DbSource = 0 // SQLITE3
 
 var Schema = "" //= "postgres."
@@ -46,8 +40,8 @@ var SqlWalFlags = "?PRAGMA journal_mode=WAL"
 var RootName string
 var HTTPPort string  // = ":80"
 var HTTPSPort string //= ":443"
-var Pem = "ssl/reais.x10host.com.key.pem"
-var Cert = "ssl/2_reais.x10host.com.crt"
+var Pem string
+var Cert string
 var UUID = ""
 
 //"github.com/gin-gonic/gin"
@@ -67,7 +61,7 @@ var DataPath = RootPath        //+ string(os.PathSeparator)        //+ string(os
 var ReplicaPath = RootPath     //+ string(os.PathSeparator)     //+ "replicas"
 var AttachmentsPath = RootPath //+ string(os.PathSeparator) //+ "attachments"
 
-var CertificatePath = "ssl" + string(os.PathSeparator) + "agent2-cert.cert"
+//var CertificatePath = "ssl" + string(os.PathSeparator) + "agent2-cert.cert"
 
 //var config map[string]interface{}
 //var defaultService = ""
@@ -96,7 +90,11 @@ func Initialize() {
 				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 { //&& len(os.Args[i+1]) > 0 && os.Args[i+1][0] != 45
 					DbName = os.Args[i+1]
 				} else {
-					DbName = pwd + string(os.PathSeparator) + "arcrest.sqlite"
+					//DbName = pwd + string(os.PathSeparator) + "catalogs/collectorDb.sqlite"
+					fmt.Println("No sqlite path entered")
+					fmt.Println("Example:  catalogs/collectorDb.sqlite")
+					os.Exit(1)
+
 				}
 
 			} else if os.Args[i] == "-pgsql" {
@@ -104,15 +102,18 @@ func Initialize() {
 				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 { // && len(os.Args[i+1]) > 0 && os.Args[i+1][0] != 45
 					DbName = os.Args[i+1]
 				} else {
+					fmt.Println("No Postgresql connection string entered")
+					fmt.Println("Example:  user=postgres dbname=gis host=192.168.99.100")
+					os.Exit(1)
 
-					DbName = "user=postgres dbname=gis host=192.168.99.100"
+					//DbName = "user=postgres dbname=gis host=192.168.99.100"
 				}
 
 			} else if os.Args[i] == "-root" {
 				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 {
 					RootPath, _ = filepath.Abs(os.Args[i+1])
 				} else {
-					fmt.Println("No root path entered")
+					fmt.Println("No root path to catalogs entered")
 					os.Exit(1)
 				}
 				//RootName = filepath.Base(os.Args[i+1])
@@ -129,7 +130,7 @@ func Initialize() {
 				LoadConfigurationFromFile()
 			} else if os.Args[i] == "-h" {
 				fmt.Println("Usage:")
-				fmt.Println("go run server.go -p HTTP Port -https HTTPS Port -root <path to service folder> -sqlite <path to service .sqlite> -pgsql <connection string for Postgresql> -h [show help]")
+				fmt.Println("go run server.go -p HTTP Port -https HTTPS Port -root <path to service folder> -sqlite <path to service .sqlite> -pgsql <connection string for Postgresql> -pem <path to pem> -cert <path to cert> -h [show help]")
 				os.Exit(0)
 			}
 		}
@@ -150,6 +151,50 @@ func Initialize() {
 			}
 		} else {
 			DbSource = FILE
+		}
+
+	} else if _, err := os.Stat("catalogs/collectorDb.sqlite"); !os.IsNotExist(err) {
+		DbName = "catalogs/collectorDb.sqlite"
+
+		Db, err = sql.Open("sqlite3", DbName+SqlFlags)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		//get configuration
+		LoadConfiguration()
+		//Db.Close()
+		tmpSrc := Project.DataSource
+		if len(tmpSrc) > 0 {
+			if tmpSrc == "psql" {
+				DbSource = PGSQL
+				//DbName = os.Getenv("DB_NAME")
+			} else if tmpSrc == "sqlite" {
+				DbSource = SQLITE3
+				//DbName = os.Getenv("DB_NAME")
+			} else {
+				DbSource = FILE
+			}
+		} else {
+			DbSource = FILE
+		}
+		if len(HTTPPort) == 0 {
+			HTTPPort = ":" + Project.HttpPort
+			if len(HTTPPort) == 1 {
+				HTTPPort = ":80"
+			}
+		}
+		if len(HTTPSPort) == 0 {
+			HTTPSPort = ":" + Project.HttpsPort
+			if len(HTTPSPort) == 1 {
+				HTTPSPort = ":443"
+			}
+		}
+		if len(Pem) == 0 {
+			Pem = Project.Pem
+		}
+		if len(Cert) == 0 {
+			Cert = Project.Cert
 		}
 
 	} else {
@@ -191,6 +236,13 @@ func Initialize() {
 			HTTPSPort = ":443"
 		}
 	}
+	if len(Pem) == 0 {
+		Pem = ":" + os.Getenv("PEM_PATH")
+	}
+	if len(Cert) == 0 {
+		Cert = ":" + os.Getenv("CERT_PATH")
+	}
+
 	if DbSource == 0 {
 		tmpSrc := os.Getenv("DB_SOURCE")
 		if len(tmpSrc) > 0 {
