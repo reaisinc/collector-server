@@ -2,7 +2,7 @@
 #kartoza/postgis:9.5-2.2
 #FROM golang:onbuild
 
-#   docker stop collector-server;docker rm collector-server;docker build -t traderboy/collector-server -f docker/Dockerfile .;docker run -d -p 80:80 -p 443:443 -e HTTPS_PORT=443 -e HTTP_PORT=80 -e ROOT_PATH=catalogs -e DB_SOURCE=PG -e DB_NAME="user=postgres dbname=gis host=172.17.0.5" --name collector-server traderboy/collector-server;docker logs collector-server -f
+#   docker stop collector-server;docker rm collector-server;docker build -t traderboy/collector-server -f docker/Dockerfile .;docker run -d -p 80:80 -p 443:443 -e HTTPS_PORT=443 -e HTTP_PORT=80 -e ROOT_PATH=catalogs -e DB_SOURCE=PGSQL -e DB_NAME="user=postgres dbname=gis host=172.17.0.5" --name collector-server traderboy/collector-server;docker logs collector-server -f
 #   docker build –t traderboy/collector-server -f docker/Dockerfile .
 #   docker rm collector-server
 #   docker run -d -p 80:80 -p 443:443 -e HTTPS_PORT=443 -e HTTP_PORT=80 --name collector-server traderboy/collector-server

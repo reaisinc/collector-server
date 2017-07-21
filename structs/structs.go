@@ -21,22 +21,21 @@ type Catalog struct {
 
 //JSONConfig stores the metadata about a service
 type JSONConfig struct {
-	Username string `json:"username"`
-	Hostname string `json:"hostname"`
+	Username   string `json:"username"`
+	Hostname   string `json:"hostname"`
+	FGDB       string `json:"fgdb"`
+	MXD        string `json:"mxd"`
+	PG         string `json:"pg"`
+	SqliteDb   string `json:"sqliteDb"`
+	DataSource string `json:"dataSource"`
+	DataName   string `json:"dataName"`
+	DataPath   string `json:"dataPath"`
+	Pem        string `json:"pemPath"`
+	Cert       string `json:"certPath"`
+	HttpPort   string `json:"httpPort"`
+	HttpsPort  string `json:"httpsPort"`
 	//Services
-	Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
-	FGDB       string                                                  `json:fgdb`
-	MXD        string                                                  `json:mxd`
-	PG         string                                                  `json:pg`
-	SqliteDb   string                                                  `json:sqliteDb`
-	DataSource string                                                  `json:dataSource`
-	RootName   string                                                  `json:rootName`
-	RootPath   string                                                  `json:rootPath`
-	Pem        string                                                  `json:pemPath`
-	Cert       string                                                  `json:certPath`
-	HttpPort   string                                                  `json:httpPort`
-	HttpsPort  string                                                  `json:httpsPort`
-
+	Services map[string]map[string]map[string]map[string]interface{} `json:"services"`
 	//Services map[string]map[string]Service
 	//map[string]Service
 }

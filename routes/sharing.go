@@ -79,15 +79,15 @@ func sharing_generateToken1(w http.ResponseWriter, r *http.Request) {
 }
 func sharing_authorize(w http.ResponseWriter, r *http.Request) {
 	log.Println("//sharing/oauth2/authorize")
-	log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "oauth2.html")
-	http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"oauth2.html")
+	log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "oauth2.html")
+	http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"oauth2.html")
 }
 func sharing_authorize_v1(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/authorize")
 	http.Redirect(w, r, "/sharing/rest?f=json&culture=en-US&code=KIV31WkDhY6XIWXmWAc6U", http.StatusMovedPermanently)
 	//302
 	//c.Redirect(http.StatusMovedPermanently, "/sharing/rest?f=json&culture=en-US&code=KIV31WkDhY6XIWXmWAc6U")
-	//http.ServeFile(w, r, config.RootPath + "/oauth2.html");
+	//http.ServeFile(w, r, config.DataPath + "/oauth2.html");
 }
 func sharing_approval(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/approval")
@@ -110,8 +110,8 @@ func sharing_approval(w http.ResponseWriter, r *http.Request) {
 }
 func sharing_signin(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/signin")
-	log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "search.json")
-	http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"search.json")
+	log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "search.json")
+	http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"search.json")
 }
 func sharing_token(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/token")
@@ -128,7 +128,7 @@ func sharing_tokens(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 func sharing_accounts_self(w http.ResponseWriter, r *http.Request) {
-	//http.ServeFile(w, r, config.RootPath + "/search.json")
+	//http.ServeFile(w, r, config.DataPath + "/search.json")
 	log.Println("/sharing/{rest}/accounts/self (" + r.Method + ")")
 	if r.Method == "PUT" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -147,8 +147,8 @@ func sharing_accounts_self(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "portals.self.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"portals.self.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "portals.self.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"portals.self.json")
 	}
 }
 
@@ -173,8 +173,8 @@ func sharing_accounts_self(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "account.self.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"account.self.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "account.self.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"account.self.json")
 	}
 }
 */
@@ -199,10 +199,10 @@ func sharing_portals_self(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "portals.self.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"portals.self.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "portals.self.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"portals.self.json")
 	}
-	//http.ServeFile(w, r, config.RootPath + "/portals_self.json")
+	//http.ServeFile(w, r, config.DataPath + "/portals_self.json")
 }
 func sharing_content_users(w http.ResponseWriter, r *http.Request) {
 
@@ -221,7 +221,7 @@ func sharing_content_items(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
 	//temp
-	name = config.RootName
+	name = config.ServiceName
 	log.Println("/sharing/rest/content/items/" + name + "(" + r.Method + ")")
 	if r.Method == "PUT" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -255,7 +255,7 @@ func sharing_content_items_data(w http.ResponseWriter, r *http.Request) {
 
 	}
 	//log.Println("Old name:  " + name)
-	name = config.RootName
+	name = config.ServiceName
 	//log.Println("New name:  " + name)
 	log.Println("/sharing/rest/content/items/" + name + "/data (" + r.Method + ")")
 	if r.Method == "PUT" {
@@ -307,8 +307,8 @@ func sharing_search(w http.ResponseWriter, r *http.Request) {
 			w.Write(response)
 
 		} else {
-			log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "community.groups.json")
-			http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"community.groups.json")
+			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "community.groups.json")
+			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"community.groups.json")
 		}
 	} else {
 		if r.Method == "PUT" {
@@ -330,8 +330,8 @@ func sharing_search(w http.ResponseWriter, r *http.Request) {
 			w.Write(response)
 
 		} else {
-			log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "search.json")
-			http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"search.json")
+			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "search.json")
+			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"search.json")
 		}
 	}
 }
@@ -364,8 +364,8 @@ func sharing_community_users(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 
 	} else {
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "community.users.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"community.users.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "community.users.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"community.users.json")
 	}
 }
 
@@ -394,8 +394,8 @@ func sharing_community_users(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "community.users.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"community.users.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "community.users.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"community.users.json")
 	}
 }
 */
@@ -423,8 +423,8 @@ func sharing_community_users_user(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "community.users.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"community.users.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "community.users.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"community.users.json")
 	}
 }
 
@@ -450,8 +450,8 @@ func sharing_community_groups(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.RootPath + string(os.PathSeparator) + "community.groups.json")
-		http.ServeFile(w, r, config.RootPath+string(os.PathSeparator)+"community.groups.json")
+		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "community.groups.json")
+		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"community.groups.json")
 	}
 }
 func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request) {
@@ -461,7 +461,7 @@ func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)
-	id = config.RootName
+	id = config.ServiceName
 	//log.Println("New name:  " + id)
 
 	img := vars["img"]
@@ -481,7 +481,7 @@ func sharing_content_items_info_thumbnail_v1(w http.ResponseWriter, r *http.Requ
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)
-	id = config.RootName
+	id = config.ServiceName
 	//log.Println("New name:  " + id)
 
 	log.Println("/sharing/rest/content/items/" + id + "/info/thumbnail/ago_downloaded.png")

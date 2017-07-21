@@ -38,6 +38,7 @@ func main() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	//os.Getenv("ORIGIN_ALLOWED")
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	fmt.Println("Public URL: " + config.Project.Hostname)
 
 	//  Start HTTP
 	go func() {
@@ -57,7 +58,7 @@ func main() {
 			log.Println("Started HTTPS server")
 		}
 	} else {
-		log.Println("Unabled to start HTTPS server")
+		log.Println("Unable to start HTTPS server")
 	}
 
 }

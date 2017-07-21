@@ -1381,7 +1381,7 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 
 	//_, err = w.Write(fields)
 	//return
-	//var replicaDb = config.RootPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	//var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	//var tableName = config.Project.Services[name]["relationships"][relationshipId]["dTable"].(string)
 
 	//log.Println(tableName)
@@ -1713,12 +1713,12 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 		}
 	*/
 	/*
-		var replicaDb = config.RootPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+		var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 		//var tableName = config.Services[name]["relationships"][id]["dTable"].(string)
 		//log.Println(tableName)
 		//var layerId = int(config.Services[name]["relationships"][id]["dId"].(float64))
 		//id = "1"
-		var jsonFile = config.RootPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
+		var jsonFile = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
 			id + ".query.json"
 		file, err1 := ioutil.ReadFile(jsonFile)
 		if err1 != nil {
@@ -1748,7 +1748,7 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 		log.Println(string(b))
 	*/
 
-	//var replicaDb = config.RootPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	//var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 
 	//var jsonFields=JSON.parse(file)
 	//log.Println("sqlite: " + replicaDb)
@@ -1764,7 +1764,7 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 	*/
 
 	/*
-		var jsonOutputFile = config.RootPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
+		var jsonOutputFile = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
 			id + ".query.exported.json"
 
 		os.Remove(jsonOutputFile)
