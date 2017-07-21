@@ -50,7 +50,7 @@ func main() {
 				log.Println("Started HTTPS server on port " + config.HTTPSPort)
 			}
 		} else {
-			log.Println("Unable to start HTTPS server.  Server may not work with Collector app which.")
+			log.Println("Unable to start HTTPS server.  Usage is limited to web page viewer only since Collector app must use HTTPS connection.")
 		}
 	}()
 	// Apply the CORS middleware to our top-level router, with the defaults.
