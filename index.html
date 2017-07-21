@@ -172,7 +172,7 @@
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.layers[i].id + "?f=json", "text": data.layers[i].name + " (" + data.layers[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.layers[i].id + "/query?returnGeometry=false&outFields=OBJECTID&f=json", "text": data.layers[i].name + " ObjectID (" + data.layers[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.layers[i].id + "/query?f=json", "text": data.layers[i].name + " Query (" + data.layers[i].id + ")" })
-                langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/db/" + (data.layers[i].id + 1) + "?f=json", "text": data.layers[i].name + " Db (" + data.layers[i].id + ")" })
+                langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/db/" + data.layers[i].id + "?f=json", "text": data.layers[i].name + " Db (" + data.layers[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/xml/" + (data.layers[i].id) + "?f=json", "text": data.layers[i].name + " XML (" + data.layers[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/table/" + data.layers[i].id, "text": data.layers[i].name + " Table (" + data.layers[i].id + ")" })
             }
@@ -180,7 +180,7 @@
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.tables[i].id + "?f=json", "text": data.tables[i].name + " (" + data.tables[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.tables[i].id + "/query?returnGeometry=false&outFields=OBJECTID&f=json", "text": data.tables[i].name + " ObjectID (" + data.tables[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.tables[i].id + "/query?f=json", "text": data.tables[i].name + " Query (" + data.tables[i].id + ")" })
-                langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/db/" + (data.tables[i].id + 1) + "?f=json", "text": data.tables[i].name + " Db (" + data.tables[i].id + ")" })
+                langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/db/" + data.tables[i].id + "?f=json", "text": data.tables[i].name + " Db (" + data.tables[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/xml/" + (data.tables[i].id) + "?f=json", "text": data.tables[i].name + " XML (" + data.tables[i].id + ")" })
                 langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/table/" + data.tables[i].id + "?f=json", "text": data.tables[i].name + " Table (" + data.tables[i].id + ")" })
 

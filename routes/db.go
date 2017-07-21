@@ -59,6 +59,8 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 	name := vars["name"]
 	id := vars["id"]
 	idInt, _ := strconv.Atoi(id)
+	idInt++
+	//newId := strconv.Itoa(idInt + 1)
 	fieldStr := r.URL.Query().Get("field")
 	if len(fieldStr) == 0 {
 		fieldStr = config.DblQuote("ItemInfo")
@@ -68,7 +70,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/db/" + id)
 
 	var dbName = config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
-	var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+	//var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
 	if len(dbPath) > 0 {
 		if config.DbSqliteDbName != dbPath {
 			if config.DbSqliteQuery != nil {
@@ -107,7 +109,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		//ret := config.SetArcService(body, name, "FeatureServer", idInt, "")
-		sql := "update " + config.Schema + config.DblQuote("GDB_ServiceItems") + " set " + fieldStr + "=? where " + config.DblQuote(parentObjectID) + "=?"
+		sql := "update " + config.Schema + config.DblQuote("GDB_ServiceItems") + " set " + fieldStr + "=? where " + config.DblQuote("OBJECTID") + "=?"
 		log.Println(sql)
 		//log.Println(body)
 		log.Println(id)
@@ -138,7 +140,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 	//Db.Exec(initializeStr)
 	log.Print("Sqlite database: " + dbName)
 	//sql := "SELECT \"DatasetName\",\"ItemId\",\"ItemInfo\",\"AdvancedDrawingInfo\" FROM \"GDB_ServiceItems\""
-	sql := "SELECT " + fieldStr + " FROM " + config.Schema + config.DblQuote("GDB_ServiceItems") + " where " + config.DblQuote(parentObjectID) + "=?"
+	sql := "SELECT " + fieldStr + " FROM " + config.Schema + config.DblQuote("GDB_ServiceItems") + " where " + config.DblQuote("OBJECTID") + "=?"
 	log.Printf("Query: "+sql+"%v", idInt)
 
 	stmt, err := config.DbSqliteQuery.Prepare(sql)

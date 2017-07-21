@@ -38,3 +38,5 @@ settings.ini
 logfile.txt
 *.bin
 
+.vscode/launch.json
+.vscode/tasks.json
