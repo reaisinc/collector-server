@@ -77,7 +77,7 @@ func Initialize() {
 	SqlWalFlags = ""
 	//clear out variables in case Initialize is run again
 
-	DbName = ""
+	//DbName = ""
 	Cert = ""
 	Pem = ""
 	HTTPPort = ""
