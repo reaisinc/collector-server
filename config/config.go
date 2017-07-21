@@ -205,6 +205,15 @@ func Initialize() {
 				}
 		*/
 	} //else {
+	//DataPath, _ = filepath.Abs(DataPath)
+	DataPath, _ = filepath.Abs(DataPath)
+	if _, err := os.Stat(DataPath + string(os.PathSeparator) + "config.json"); os.IsNotExist(err) {
+		DataPath = DataPath + string(os.PathSeparator) + "catalogs"
+		if _, err := os.Stat(DataPath + string(os.PathSeparator) + "config.json"); os.IsNotExist(err) {
+			fmt.Println("Unable to locate catalogs directory in data path: " + DataPath)
+			os.Exit(0)
+		}
+	}
 
 	//read all folder in catalogs
 	/*
@@ -521,7 +530,7 @@ func Initialize() {
 	*/
 
 	//DataPath = RootPath        //+ string(os.PathSeparator)        //+ defaultService + string(os.PathSeparator) + "services" + string(os.PathSeparator)
-	DataPath, _ = filepath.Abs(DataPath)
+
 	ReplicaPath = DataPath     //+ string(os.PathSeparator)     //+ defaultService + string(os.PathSeparator) + "replicas" + string(os.PathSeparator)
 	AttachmentsPath = DataPath //+ string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "attachments" //+ string(os.PathSeparator)
 	UploadPath = DataPath + string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "attachments"
