@@ -6,7 +6,7 @@ import (
 )
 
 type Catalog struct {
-	Services        JSONConfig
+	//Services        JSONConfig
 	DataSource      int
 	SqliteSource    string
 	Postgresql      string
@@ -20,24 +20,35 @@ type Catalog struct {
 }
 
 //JSONConfig stores the metadata about a service
-type JSONConfig struct {
-	Username   string `json:"username"`
-	Hostname   string `json:"hostname"`
-	FGDB       string `json:"fgdb"`
-	MXD        string `json:"mxd"`
-	PG         string `json:"pg"`
-	SqliteDb   string `json:"sqliteDb"`
+type Collector struct {
+	Configuration  *sql.DB
+	Username       string             `json:"username"`
+	Hostname       string             `json:"hostname"`
+	SqliteDb       string             `json:"sqliteDb"`
+	Pem            string             `json:"pemPath"`
+	Cert           string             `json:"certPath"`
+	HttpPort       string             `json:"httpPort"`
+	HttpsPort      string             `json:"httpsPort"`
+	DefaultProject string             `json:"defaultProject"`
+	Projects       map[string]Project `json:"projects"`
+	//Services
+
+	//Services map[string]map[string]Service
+	//map[string]Service
+}
+type Project struct {
+	Name string `json:"name"`
+	FGDB string `json:"fgdb"`
+	MXD  string `json:"mxd"`
+	PG   string `json:"pg"`
+	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
+	Layers        map[string]map[string]map[string]interface{} `json:"layers"`
+	Relationships map[string]map[string]map[string]interface{} `json:"relationships"`
+
 	DataSource string `json:"dataSource"`
 	DataName   string `json:"dataName"`
 	DataPath   string `json:"dataPath"`
-	Pem        string `json:"pemPath"`
-	Cert       string `json:"certPath"`
-	HttpPort   string `json:"httpPort"`
-	HttpsPort  string `json:"httpsPort"`
-	//Services
-	Services map[string]map[string]map[string]map[string]interface{} `json:"services"`
-	//Services map[string]map[string]Service
-	//map[string]Service
+	DB         *sql.DB
 }
 
 type FieldsStr struct {

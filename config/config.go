@@ -24,7 +24,7 @@ const (
 	FILE    = 3
 )
 
-var Catalogs map[string]structs.Catalog
+//var Catalogs map[string]structs.Catalog
 
 var DbSource = 0 // SQLITE3
 
@@ -32,7 +32,9 @@ var Schema = "" //= "postgres."
 var TableSuffix = ""
 var DbTimeStamp = ""
 
-var Project structs.JSONConfig
+var Collector structs.Collector
+
+//var Project structs.Project
 var DataPath = "catalogs"
 var SqlFlags = "?cache=shared&mode=wrc"
 var SqlWalFlags = "?PRAGMA journal_mode=WAL"
@@ -251,7 +253,7 @@ func Initialize() {
 		} else if tmpSrc == "sqlite" {
 			DbSource = SQLITE3
 			if len(DbName) == 0 {
-				DbName = Project.SqliteDb
+				DbName = Collector.SqliteDb
 			}
 			if len(DbName) == 0 {
 				DbSource = FILE
@@ -264,22 +266,22 @@ func Initialize() {
 		DbSource = FILE
 	}
 	if len(HTTPPort) == 0 {
-		HTTPPort = ":" + Project.HttpPort
+		HTTPPort = ":" + Collector.HttpPort
 		if len(HTTPPort) == 1 {
 			HTTPPort = ":80"
 		}
 	}
 	if len(HTTPSPort) == 0 {
-		HTTPSPort = ":" + Project.HttpsPort
+		HTTPSPort = ":" + Collector.HttpsPort
 		if len(HTTPSPort) == 1 {
 			HTTPSPort = ":443"
 		}
 	}
 	if len(Pem) == 0 {
-		Pem = Project.Pem
+		Pem = Collector.Pem
 	}
 	if len(Cert) == 0 {
-		Cert = Project.Cert
+		Cert = Collector.Cert
 	}
 	//}
 	//for docker, environment variables override command line parameters?
@@ -599,7 +601,7 @@ func SetDatasource(newDatasource int) {
 		log.Print("Pinging Postgresql: ")
 		log.Println(Db.Ping)
 	} else if newDatasource == SQLITE3 {
-		Db, err = sql.Open("sqlite3", "file:"+Project.SqliteDb+SqlWalFlags)
+		Db, err = sql.Open("sqlite3", "file:"+Collector.SqliteDb+SqlWalFlags)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -629,17 +631,18 @@ func LoadConfiguration() {
 		LoadConfigurationFromFile()
 		return
 	}
-	err = json.Unmarshal(str, &Project)
+	err = json.Unmarshal(str, &Collector)
 	if err != nil {
 		log.Println("Error parsing configuration table")
 		log.Println(err.Error())
 		LoadConfigurationFromFile()
 		return
 	}
-	for i, _ := range Project.Services {
-		ServiceName = i
-		//ServiceName = val[i]
-	}
+	//Project = Collector.Projects[0]
+	//for i, _ := range Project.Services {
+	//	ServiceName = i
+	//	//ServiceName = val[i]
+	//}
 }
 
 func LoadConfigurationFromFile() {
@@ -652,15 +655,16 @@ func LoadConfigurationFromFile() {
 		os.Exit(1)
 	}
 
-	err2 := json.Unmarshal(file, &Project)
+	err2 := json.Unmarshal(file, &Collector)
 	if err2 != nil {
 		log.Println("Error reading configuration file: " + configFile)
 		log.Println(err2.Error())
 	}
-	for i, _ := range Project.Services {
-		ServiceName = i
-		//RootName = val[i]
-	}
+	//Project = Collector.Projects[0]
+	//for i, _ := range Project.Services {
+	//	ServiceName = i
+	//RootName = val[i]
+	//}
 
 }
 
@@ -935,8 +939,8 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 		}
 		//globalIdFieldName=GlobalID
 		//objectIdFieldName=OBJECTID
-		featureObj.GlobalIDField = "GlobalID"
-		featureObj.ObjectIDFieldName = "OBJECTID"
+		//featureObj.GlobalIDField = "GlobalID"
+		//featureObj.ObjectIDFieldName = "OBJECTID"
 		/*
 			GlobalIDField     string `json:"globalIdField,omitempty"`
 			GlobalIDFieldName string `json:"globalIdFieldName,omitempty"`

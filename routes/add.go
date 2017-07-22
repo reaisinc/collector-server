@@ -105,14 +105,14 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			i.Attributes[globalIdName] = uuidstr
 			c++
 		}
-		if config.Project.Services[name]["layers"][id]["editFieldsInfo"] != nil {
-			//joinField = config.Project.Services[name]["layers"][id]["joinField"].(string)
+		if config.Collector.Projects[name]["layers"][id]["editFieldsInfo"] != nil {
+			//joinField = config.Collector.Projects[name]["layers"][id]["joinField"].(string)
 			current_time := time.Now().Local()
 
-			if rec, ok := config.Project.Services[name]["layers"][id]["editFieldsInfo"].(map[string]interface{}); ok {
+			if rec, ok := config.Collector.Projects[name]["layers"][id]["editFieldsInfo"].(map[string]interface{}); ok {
 				for key, j := range rec {
-					//for key, j := range config.Project.Services[name]["layers"][id]["editFieldsInfo"] {
-					cols += sep + config.DblQuote(j.(string)) //config.Project.Services[name]["layers"][id]["editFieldsInfo"][key]
+					//for key, j := range config.Collector.Projects[name]["layers"][id]["editFieldsInfo"] {
+					cols += sep + config.DblQuote(j.(string)) //config.Collector.Projects[name]["layers"][id]["editFieldsInfo"][key]
 					if key == "creatorField" || key == "editorField" {
 						vals = append(vals, config.Project.Username)
 						p += sep + config.GetParam(c)
@@ -130,14 +130,14 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			}
 
 			/*
-				cols += sep + config.Project.Services[name]["layers"][id]["editFieldsInfo"]["creatorField"]
+				cols += sep + config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["creatorField"]
 				p += sep + config.GetParam(c)
 				c++
 
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["creatorField"] = config.Project.Username
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["editorField"]=config.Project.Username
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["creationDateField"]=
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["editDateField"]
+				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["creatorField"] = config.Project.Username
+				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["editorField"]=config.Project.Username
+				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["creationDateField"]=
+				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["editDateField"]
 			*/
 
 		}

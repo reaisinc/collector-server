@@ -448,9 +448,9 @@ func attachments(w http.ResponseWriter, r *http.Request) {
 	} else {
 		//var objectid int
 		//config.Schema +
-		var parentTableName = config.Project.Services[name]["layers"][id]["data"].(string)
+		var parentTableName = config.Collector.Projects[name]["layers"][id]["data"].(string)
 		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
-		var globalIdName = config.Project.Services[name]["layers"][id]["globaloidname"].(string)
+		var globalIdName = config.Collector.Projects[name]["layers"][id]["globaloidname"].(string)
 		log.Println("Table name: " + tableName)
 
 		sql := "select \"ATTACHMENTID\",\"CONTENT_TYPE\",\"ATT_NAME\" from " + config.Schema + config.DblQuote(tableName) + " where  " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(1) + ")"
@@ -538,9 +538,9 @@ func attachments_img(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		var parentTableName = config.Project.Services[name]["layers"][id]["data"].(string)
+		var parentTableName = config.Collector.Projects[name]["layers"][id]["data"].(string)
 		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
-		var globalIdName = config.Project.Services[name]["layers"][id]["globaloidname"].(string)
+		var globalIdName = config.Collector.Projects[name]["layers"][id]["globaloidname"].(string)
 		log.Println("Table name: " + tableName)
 
 		sql := "select \"CONTENT_TYPE\",\"ATT_NAME\",\"DATA\" from " + config.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(1) + ")"
@@ -622,10 +622,10 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 	os.MkdirAll(uploadPath, 0755)
 
 	var objectid int
-	var parentTableName = config.Project.Services[name]["layers"][id]["data"].(string)
-	var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+	var parentTableName = config.Collector.Projects[name]["layers"][id]["data"].(string)
+	var parentObjectID = config.Collector.Projects[name]["layers"][id]["oidname"].(string)
 	var tableName = parentTableName + "__ATTACH" + config.TableSuffix
-	var globalIdName = config.Project.Services[name]["layers"][id]["globaloidname"].(string)
+	var globalIdName = config.Collector.Projects[name]["layers"][id]["globaloidname"].(string)
 	var uuidstr string
 	var globalid string
 	log.Println("Table name: " + tableName)
@@ -924,7 +924,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 	//} else {
 	if config.DbSource != config.FILE {
-		var parentTableName = config.Project.Services[name]["layers"][id]["data"].(string)
+		var parentTableName = config.Collector.Projects[name]["layers"][id]["data"].(string)
 		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
 
 		cols := []string{"CONTENT_TYPE", "ATT_NAME", "DATA_SIZE", "DATA"}
@@ -963,7 +963,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	/*
-		var parentTableName = config.Schema + config.Project.Services[name]["layers"][id]["data"].(string)
+		var parentTableName = config.Schema + config.Collector.Projects[name]["layers"][id]["data"].(string)
 		var tableName = parentTableName + "__ATTACH_evw"
 		var vals []interface{}
 		vals = append(vals, row)
@@ -1009,8 +1009,8 @@ func deleteAttachments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if config.DbSource != config.FILE {
-		var parentTableName = config.Project.Services[name]["layers"][id]["data"].(string)
-		var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+		var parentTableName = config.Collector.Projects[name]["layers"][id]["data"].(string)
+		var parentObjectID = config.Collector.Projects[name]["layers"][id]["oidname"].(string)
 		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
 		var vals []interface{}
 		vals = append(vals, row)
@@ -1040,7 +1040,7 @@ func query(w http.ResponseWriter, r *http.Request) {
 	where := r.FormValue("where")
 	outFields := r.FormValue("outFields")
 	returnIdsOnly := r.FormValue("returnIdsOnly")
-	var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+	var parentObjectID = config.Collector.Projects[name]["layers"][id]["oidname"].(string)
 	//returnGeometry := r.FormValue("returnGeometry")
 	objectIds := r.FormValue("objectIds")
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query")
@@ -1049,6 +1049,7 @@ func query(w http.ResponseWriter, r *http.Request) {
 	//log.Println(r.FormValue("returnGeometry"))
 	//log.Println(r.FormValue("outFields"))
 	//sql := "select "+outFields + " from " +
+	where = ""
 
 	if len(where) > 0 {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/where=" + where)
@@ -1148,8 +1149,8 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 	var outFields = r.FormValue("outFields")
 	var objectId, _ = strconv.Atoi(objectIds)
 	//get fields for the related table
-	dID := config.Project.Services[name]["relationships"][relationshipId]["dId"]
-	var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+	dID := config.Collector.Projects[name]["relationships"][relationshipId]["dId"]
+	var parentObjectID = config.Collector.Projects[name]["layers"][id]["oidname"].(string)
 
 	//get the fields json
 
@@ -1157,15 +1158,15 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 		//have to find the joinAttribute value for source and destination
 		/*
 			var sqlstr = "select " + outFields + " from " + config.Schema +
-				config.Project.Services[name]["relationships"][relationshipId]["dTable"].(string) +
+				config.Collector.Projects[name]["relationships"][relationshipId]["dTable"].(string) +
 				" where " +
-				config.Project.Services[name]["relationships"][relationshipId]["dJoinKey"].(string) + " in (select " +
-				config.Project.Services[name]["relationships"][relationshipId]["oJoinKey"].(string) + " from " +
-				config.Project.Services[name]["relationships"][relationshipId]["oTable"].(string) +
+				config.Collector.Projects[name]["relationships"][relationshipId]["dJoinKey"].(string) + " in (select " +
+				config.Collector.Projects[name]["relationships"][relationshipId]["oJoinKey"].(string) + " from " +
+				config.Collector.Projects[name]["relationships"][relationshipId]["oTable"].(string) +
 				" where OBJECTID in(" + config.GetParam(1) + "))"
 		*/
-		var dJoinKey = config.Project.Services[name]["relationships"][relationshipId]["dJoinKey"].(string)
-		var oJoinKey = config.Project.Services[name]["relationships"][relationshipId]["oJoinKey"].(string)
+		var dJoinKey = config.Collector.Projects[name]["relationships"][relationshipId]["dJoinKey"].(string)
+		var oJoinKey = config.Collector.Projects[name]["relationships"][relationshipId]["oJoinKey"].(string)
 
 		jsonFile := fmt.Sprint(config.DataPath, string(os.PathSeparator), name+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", id, ".query.json")
 		log.Println(jsonFile)
@@ -1382,23 +1383,23 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 	//_, err = w.Write(fields)
 	//return
 	//var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
-	//var tableName = config.Project.Services[name]["relationships"][relationshipId]["dTable"].(string)
+	//var tableName = config.Collector.Projects[name]["relationships"][relationshipId]["dTable"].(string)
 
 	//log.Println(tableName)
 	//var layerId = int(config.Services[name]["relationships"][relationshipId]["dId"].(float64))
 	//var jsonFields=JSON.parse(file)
 	//log.Println("sqlite: " + replicaDb)
 	//var db = new sqlite3.Database(replicaDb)
-	joinField := config.Project.Services[name]["relationships"][relationshipId]["oJoinKey"].(string)
+	joinField := config.Collector.Projects[name]["relationships"][relationshipId]["oJoinKey"].(string)
 	//if joinField == "GlobalID" || joinField == "GlobalGUUD" {
 	//	joinField = "substr(" + joinField + ", 2, length(" + joinField + ")-2)"
 	//}
 	var sqlstr = "select " + outFields + " from " + config.Schema +
-		config.DblQuote(config.Project.Services[name]["relationships"][relationshipId]["dTable"].(string)+config.TableSuffix) +
+		config.DblQuote(config.Collector.Projects[name]["relationships"][relationshipId]["dTable"].(string)+config.TableSuffix) +
 		" where " +
-		config.DblQuote(config.Project.Services[name]["relationships"][relationshipId]["dJoinKey"].(string)) + " in (select " +
+		config.DblQuote(config.Collector.Projects[name]["relationships"][relationshipId]["dJoinKey"].(string)) + " in (select " +
 		config.DblQuote(joinField) + " from " +
-		config.Schema + config.DblQuote(config.Project.Services[name]["relationships"][relationshipId]["oTable"].(string)) +
+		config.Schema + config.DblQuote(config.Collector.Projects[name]["relationships"][relationshipId]["oTable"].(string)) +
 		" where " + config.DblQuote(parentObjectID) + " in(" + config.GetParam(1) + "))"
 
 	//_, err = w.Write([]byte(sqlstr))
@@ -1541,16 +1542,16 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
 	id := vars["id"]
-	var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+	var parentObjectID = config.Collector.Projects[name]["layers"][id]["oidname"].(string)
 	//idInt, _ := strconv.Atoi(id)
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/applyEdits")
 	var response []byte
 	var joinField = "GlobalID"
-	//log.Println(config.Project.Services[name]["layers"])
-	//log.Println(config.Project.Services[name]["layers"][id])
-	//log.Println(config.Project.Services[name]["layers"][id]["joinField"])
-	if len(config.Project.Services[name]["layers"][id]["joinField"].(string)) > 0 {
-		joinField = config.Project.Services[name]["layers"][id]["joinField"].(string)
+	//log.Println(config.Collector.Projects[name]["layers"])
+	//log.Println(config.Collector.Projects[name]["layers"][id])
+	//log.Println(config.Collector.Projects[name]["layers"][id]["joinField"])
+	if len(config.Collector.Projects[name]["layers"][id]["joinField"].(string)) > 0 {
+		joinField = config.Collector.Projects[name]["layers"][id]["joinField"].(string)
 	}
 	if config.DbSource == config.FILE {
 
@@ -1682,8 +1683,8 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-		var tableName = config.Project.Services[name]["layers"][id]["data"].(string)
-		var globalIdName = config.Project.Services[name]["layers"][id]["globaloidname"].(string)
+		var tableName = config.Collector.Projects[name]["layers"][id]["data"].(string)
+		var globalIdName = config.Collector.Projects[name]["layers"][id]["globaloidname"].(string)
 		//log.Println("Table name: " + tableName)
 		//var layerId = int(config.Services[name]["relationships"][relationshipId]["dId"].(float64))
 
