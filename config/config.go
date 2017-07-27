@@ -91,7 +91,7 @@ func Initialize() {
 	//	log.Println("Unable to get current directory")
 	//}
 	//DataPath = pwd + string(os.PathSeparator) + DataPath //+ string(os.PathSeparator)
-	var err error
+	//var err error
 	var DbName string
 
 	if len(os.Args) > 1 {
@@ -242,29 +242,31 @@ func Initialize() {
 			DbSource = FILE
 		}
 	*/
-	tmpSrc := Project.DataSource
-	if len(tmpSrc) > 0 {
-		if tmpSrc == "pgsql" {
-			DbSource = PGSQL
-			if len(DbName) == 0 {
-				DbName = Project.PG
-			}
-			//DbName = os.Getenv("DB_NAME")
-		} else if tmpSrc == "sqlite" {
-			DbSource = SQLITE3
-			if len(DbName) == 0 {
-				DbName = Collector.SqliteDb
-			}
-			if len(DbName) == 0 {
+	/*
+		tmpSrc := Project.DataSource
+		if len(tmpSrc) > 0 {
+			if tmpSrc == "pgsql" {
+				DbSource = PGSQL
+				if len(DbName) == 0 {
+					DbName = Project.PG
+				}
+				//DbName = os.Getenv("DB_NAME")
+			} else if tmpSrc == "sqlite" {
+				DbSource = SQLITE3
+				if len(DbName) == 0 {
+					DbName = Collector.SqliteDb
+				}
+				if len(DbName) == 0 {
+					DbSource = FILE
+				}
+				//DbName = os.Getenv("DB_NAME")
+			} else {
 				DbSource = FILE
 			}
-			//DbName = os.Getenv("DB_NAME")
 		} else {
 			DbSource = FILE
 		}
-	} else {
-		DbSource = FILE
-	}
+	*/
 	if len(HTTPPort) == 0 {
 		HTTPPort = ":" + Collector.HttpPort
 		if len(HTTPPort) == 1 {
@@ -303,221 +305,154 @@ func Initialize() {
 	if len(Cert) == 0 {
 		Cert = os.Getenv("CERT_PATH")
 	}
-
-	if DbSource == 0 {
-		tmpSrc := os.Getenv("DB_SOURCE")
-		if len(tmpSrc) > 0 {
-			if tmpSrc == "PGSQL" {
-				DbSource = PGSQL
-			} else if tmpSrc == "SQLITE" {
-				DbSource = SQLITE3
+	/*
+		if DbSource == 0 {
+			tmpSrc := os.Getenv("DB_SOURCE")
+			if len(tmpSrc) > 0 {
+				if tmpSrc == "PGSQL" {
+					DbSource = PGSQL
+				} else if tmpSrc == "SQLITE" {
+					DbSource = SQLITE3
+				} else {
+					DbSource = FILE
+				}
 			} else {
 				DbSource = FILE
 			}
-		} else {
-			DbSource = FILE
 		}
-	}
-
-	if len(DbName) > 0 {
-		if DbSource == PGSQL {
-			Db, err = sql.Open("postgres", DbName)
-			if err != nil {
-				log.Fatal(err)
-			}
-			DbQuery = Db
-			Schema = "postgres."
-			UUID = "('{'||md5(random()::text || clock_timestamp()::text)::uuid||'}')"
-			//DbTimeStamp = "(CAST (to_char(now(), 'J') AS INT) - 2440587.5)*86400.0*1000"
-			DbTimeStamp = "(now())"
-
-			log.Print("Postgresql database: " + DbName)
-			log.Print("Pinging Postgresql: ")
-			log.Println(Db.Ping)
-			LoadConfiguration()
-		} else if DbSource == SQLITE3 {
-			Schema = ""
-			TableSuffix = "_evw"
-			UUID = "(select '{'||upper(substr(u,1,8)||'-'||substr(u,9,4)||'-4'||substr(u,13,3)||'-'||v||substr(u,17,3)||'-'||substr(u,21,12))||'}' from ( select lower(hex(randomblob(16))) as u, substr('89ab',abs(random()) % 4 + 1, 1) as v) as foo)"
-			DbTimeStamp = "(julianday('now') - 2440587.5)*86400.0*1000"
-
-			//use 2 different sqlite files:
-			//1st: contains configuration information and JSON data
-			//2nd: contains actual data
-			/*
-						initializeStr := `PRAGMA automatic_index = ON;
-				        PRAGMA cache_size = 32768;
-				        PRAGMA cache_spill = OFF;
-				        PRAGMA foreign_keys = ON;
-				        PRAGMA journal_size_limit = 67110000;
-				        PRAGMA locking_mode = NORMAL;
-				        PRAGMA page_size = 4096;
-				        PRAGMA recursive_triggers = ON;
-				        PRAGMA secure_delete = ON;
-				        PRAGMA synchronous = NORMAL;
-				        PRAGMA temp_store = MEMORY;
-				        PRAGMA journal_mode = WAL;
-				        PRAGMA wal_autocheckpoint = 16384;
-						`
-			*/
-			//log.Println(initializeStr)
-			//initializeStr = "PRAGMA synchronous = OFF;PRAGMA cache_size=100000;PRAGMA journal_mode=WAL;"
-			//log.Println(initializeStr)
-
-			//Db, err = sql.Open("sqlite3", "file:"+DbName+"?PRAGMA journal_mode=WAL")
-
-			once.Do(initDB)
-
-			Db, err = sql.Open("sqlite3", DbName+SqlFlags)
-			if err != nil {
-				log.Fatal(err)
-			}
-			err = Db.Ping()
-			if err != nil {
-				log.Fatalf("Error on opening database connection: %s", err.Error())
-			}
-
-			//&sqlite3.SQLiteConn.LoadExtension("stgeometry_sqlite", "sqlite3_stgeometrysqlite_init")
-
-			//sqlite3.LoadExtension("stgeometry_sqlite", "sqlite3_stgeometrysqlite_init")
-
-			/*
-			   conn := &SQLiteConn{db: Db, loc: loc, txlock: txlock}
-			   conn.LoadExtensions()
-			   	if len(d.Extensions) > 0 {
-			   		if err := conn.loadExtensions(d.Extensions); err != nil {
-			   			conn.Close()
-			   			return nil, err
-			   		}
-			   	}
-			*/
-
-			//_, err = DbQuery.Exec("SELECT load_extension('stgeometry_sqlite')")
-			//_, err = DbQuery.("stgeometry_sqlite","sqlite3_stgeometrysqlite_init")
-			//sqlite3conn := []*sqlite3.SQLiteConn{}
-			//c *sqlite3.SQLiteConn
-			/*
-			   sql.Register("sqlite3_with_extensions", &sqlite3.SQLiteDriver{
-			   		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
-			   			return conn.CreateModule("github", &githubModule{})
-			   		},
-			   	})
-			*/
-
-			//_, err = Db.Exec("SELECT load_extension('stgeometry_sqlite','SDE_SQL_funcs_init')")
-			//SELECT load_extension('stgeometry_sqlite.dll','SDE_SQL_funcs_init');
-			//if err != nil {
-			//	log.Fatalf("Error on loading extension stgeometry_sqlite: %s", err.Error())
-			//}
-
-			//Db.Exec(initializeStr)
-			log.Println("Sqlite config database: " + DbName)
-			//defer Db.Close()
-			//Db.SetMaxOpenConns(1)
-
-			LoadConfiguration()
-			//get ServiceName
-			DbQueryName := DataPath + string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + ServiceName + ".geodatabase"
-
-			//DbQuery, err = sql.Open("sqlite3", "file:"+DbQueryName+"?PRAGMA journal_mode=WAL")
-			DbQuery, err = sql.Open("sqlite3", DbQueryName+SqlFlags)
-			if err != nil {
-				log.Fatal(err)
-			}
-			err = DbQuery.Ping()
-			if err != nil {
-				log.Fatalf("Error on opening database connection: %s", err.Error())
-			}
-			log.Println("Sqlite replica database: " + DbQueryName)
-
-			//testQuery()
-			//os.Exit(0)
-
-			/*
-				sql := "select * from grazing_inspections where GlobalGUID in (select substr(GlobalID, 2, length(GlobalID)-2) from grazing_permittees where OBJECTID in(?))"
-				stmt, err := Db.Prepare(sql)
+	*/
+	/*
+		if len(DbName) > 0 {
+			if DbSource == PGSQL {
+				Db, err = sql.Open("postgres", DbName)
 				if err != nil {
 					log.Fatal(err)
 				}
-				rows, err := stmt.Query(16) //relationshipIdInt
+				DbQuery = Db
+				Schema = "postgres."
+				UUID = "('{'||md5(random()::text || clock_timestamp()::text)::uuid||'}')"
+				//DbTimeStamp = "(CAST (to_char(now(), 'J') AS INT) - 2440587.5)*86400.0*1000"
+				DbTimeStamp = "(now())"
+
+				log.Print("Postgresql database: " + DbName)
+				log.Print("Pinging Postgresql: ")
+				log.Println(Db.Ping)
+				LoadConfiguration()
+			} else if DbSource == SQLITE3 {
+				Schema = ""
+				TableSuffix = "_evw"
+				UUID = "(select '{'||upper(substr(u,1,8)||'-'||substr(u,9,4)||'-4'||substr(u,13,3)||'-'||v||substr(u,17,3)||'-'||substr(u,21,12))||'}' from ( select lower(hex(randomblob(16))) as u, substr('89ab',abs(random()) % 4 + 1, 1) as v) as foo)"
+				DbTimeStamp = "(julianday('now') - 2440587.5)*86400.0*1000"
+
+				//use 2 different sqlite files:
+				//1st: contains configuration information and JSON data
+				//2nd: contains actual data
+
+				//			initializeStr := `PRAGMA automatic_index = ON;
+				//	        PRAGMA cache_size = 32768;
+				//	        PRAGMA cache_spill = OFF;
+				//	        PRAGMA foreign_keys = ON;
+				//	        PRAGMA journal_size_limit = 67110000;
+				//	        PRAGMA locking_mode = NORMAL;
+				//	        PRAGMA page_size = 4096;
+				//	        PRAGMA recursive_triggers = ON;
+				//	        PRAGMA secure_delete = ON;
+				//	        PRAGMA synchronous = NORMAL;
+				//	        PRAGMA temp_store = MEMORY;
+				//	        PRAGMA journal_mode = WAL;
+				//	        PRAGMA wal_autocheckpoint = 16384;
+							`
+
+				//log.Println(initializeStr)
+				//initializeStr = "PRAGMA synchronous = OFF;PRAGMA cache_size=100000;PRAGMA journal_mode=WAL;"
+				//log.Println(initializeStr)
+
+				//Db, err = sql.Open("sqlite3", "file:"+DbName+"?PRAGMA journal_mode=WAL")
+
+				once.Do(initDB)
+
+				Db, err = sql.Open("sqlite3", DbName+SqlFlags)
 				if err != nil {
 					log.Fatal(err)
 				}
-				defer rows.Close()
-				columns, _ := rows.Columns()
-				count := len(columns)
-				values := make([]interface{}, count)
-				valuePtrs := make([]interface{}, count)
-				//for i, _ := range columns {
-				//	log.Println(columns[i])
+				err = Db.Ping()
+				if err != nil {
+					log.Fatalf("Error on opening database connection: %s", err.Error())
+				}
+
+				//&sqlite3.SQLiteConn.LoadExtension("stgeometry_sqlite", "sqlite3_stgeometrysqlite_init")
+
+				//sqlite3.LoadExtension("stgeometry_sqlite", "sqlite3_stgeometrysqlite_init")
+
+
+				//   conn := &SQLiteConn{db: Db, loc: loc, txlock: txlock}
+				//   conn.LoadExtensions()
+				//   	if len(d.Extensions) > 0 {
+				//   		if err := conn.loadExtensions(d.Extensions); err != nil {
+				//   			conn.Close()
+				//   			return nil, err
+				//   		}
+				//   	}
+
+
+				//_, err = DbQuery.Exec("SELECT load_extension('stgeometry_sqlite')")
+				//_, err = DbQuery.("stgeometry_sqlite","sqlite3_stgeometrysqlite_init")
+				//sqlite3conn := []*sqlite3.SQLiteConn{}
+				//c *sqlite3.SQLiteConn
+
+				//   sql.Register("sqlite3_with_extensions", &sqlite3.SQLiteDriver{
+				//   		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+				//   			return conn.CreateModule("github", &githubModule{})
+				//   		},
+				//   	})
+
+
+				//_, err = Db.Exec("SELECT load_extension('stgeometry_sqlite','SDE_SQL_funcs_init')")
+				//SELECT load_extension('stgeometry_sqlite.dll','SDE_SQL_funcs_init');
+				//if err != nil {
+				//	log.Fatalf("Error on loading extension stgeometry_sqlite: %s", err.Error())
 				//}
 
-				for rows.Next() {
-					for i, _ := range columns {
-						valuePtrs[i] = &values[i]
-						log.Println(i)
-					}
-					rows.Scan(valuePtrs...)
-					for i, col := range columns {
-						log.Println(i)
-						log.Println(col)
-					}
-				}
-				err = rows.Err()
+				//Db.Exec(initializeStr)
+				log.Println("Sqlite config database: " + DbName)
+				//defer Db.Close()
+				//Db.SetMaxOpenConns(1)
+
+				LoadConfiguration()
+				//get ServiceName
+				DbQueryName := DataPath + string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + ServiceName + ".geodatabase"
+
+				//DbQuery, err = sql.Open("sqlite3", "file:"+DbQueryName+"?PRAGMA journal_mode=WAL")
+				DbQuery, err = sql.Open("sqlite3", DbQueryName+SqlFlags)
 				if err != nil {
 					log.Fatal(err)
 				}
-				rows.Close()
-
-				sql = "select * from grazing_inspections where GlobalGUID in (select substr(GlobalID, 2, length(GlobalID)-2) from grazing_permittees where OBJECTID in(16))"
-				sql = "select substr(GlobalID, 2, length(GlobalID)-2) as GlobalGUID from grazing_permittees where OBJECTID in(16)"
-				sql = "select OBJECTID,cows,yearling_heifers,steer_calves,yearling_steers,bulls,mares,geldings,studs,fillies,colts,ewes,lambs,rams,wethers,kids,billies,nannies,Comments,GlobalGUID,created_user,created_date,last_edited_user,last_edited_date,reviewer_name,reviewer_date,reviewer_title,GlobalID from grazing_inspections"
-				sql = "select * from grazing_permittees"
-				sql = "select OBJECTID from grazing_inspections"
-
-				log.Println(sql)
-				rows, err = Db.Query(sql) //relationshipIdInt
-				columns, _ = rows.Columns()
-				count = len(columns)
-				values = make([]interface{}, count)
-				valuePtrs = make([]interface{}, count)
-
-				for rows.Next() {
-					for i := range columns {
-						valuePtrs[i] = &values[i]
-						log.Println(i)
-					}
-					rows.Scan(valuePtrs...)
-					for i, col := range columns {
-						log.Println(i)
-						log.Println(col)
-						//val := values[i]
-						//log.Printf("%v", val.([]uint8))
-					}
-				}
-				err = rows.Err()
+				err = DbQuery.Ping()
 				if err != nil {
-					log.Fatal(err)
+					log.Fatalf("Error on opening database connection: %s", err.Error())
 				}
-				rows.Close()
+				log.Println("Sqlite replica database: " + DbQueryName)
 
-				os.Exit(1)
-			*/
+				//testQuery()
+				//os.Exit(0)
 
-			//defer DbQuery.Close()
-			//DbQuery.SetMaxOpenConns(1)
-			//log.Print("Sqlite database: " + DbQueryName)
-			//DbQuery.Exec(initializeStr)
-			//defer db.Close()
+
+
+				//defer DbQuery.Close()
+				//DbQuery.SetMaxOpenConns(1)
+				//log.Print("Sqlite database: " + DbQueryName)
+				//DbQuery.Exec(initializeStr)
+				//defer db.Close()
+			}
+		} else {
+			if DbSource == PGSQL {
+				log.Println("Missing Postgresql connection string:  defaulting to FileSystem")
+			} else if DbSource == SQLITE3 {
+				log.Println("Missing Sqlite database name:  defaulting to FileSystem")
+			}
+			DbSource = FILE
 		}
-	} else {
-		if DbSource == PGSQL {
-			log.Println("Missing Postgresql connection string:  defaulting to FileSystem")
-		} else if DbSource == SQLITE3 {
-			log.Println("Missing Sqlite database name:  defaulting to FileSystem")
-		}
-		DbSource = FILE
-	}
+	*/
 	/*
 		else if DbSource == FILE {
 			LoadConfigurationFromFile()
@@ -556,6 +491,8 @@ func Initialize() {
 		DbSourceName = "Unknown"
 	}
 	log.Println("Data source: " + DbSourceName)
+	log.Println("Data name" + DbName)
+
 	log.Printf("HTTP Port: %v\n", HTTPPort)
 	log.Printf("HTTPS Port: %v\n", HTTPSPort)
 	log.Printf("Cert: %v\n", Pem)
@@ -578,6 +515,7 @@ func GetParam(i int) string {
 	return "$" + strconv.Itoa(i)
 }
 
+/*
 func SetDatasource(newDatasource int) {
 	if DbSource == newDatasource {
 		return
@@ -614,7 +552,7 @@ func SetDatasource(newDatasource int) {
 		}
 	}
 }
-
+*/
 func LoadConfiguration() {
 
 	sql := "select json from catalog where name=" + GetParam(1)
@@ -1026,4 +964,74 @@ func testQuery() {
 	stmt.Close()
 
 }
+*/
+/*
+	sql := "select * from grazing_inspections where GlobalGUID in (select substr(GlobalID, 2, length(GlobalID)-2) from grazing_permittees where OBJECTID in(?))"
+	stmt, err := Db.Prepare(sql)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, err := stmt.Query(16) //relationshipIdInt
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	columns, _ := rows.Columns()
+	count := len(columns)
+	values := make([]interface{}, count)
+	valuePtrs := make([]interface{}, count)
+	//for i, _ := range columns {
+	//	log.Println(columns[i])
+	//}
+
+	for rows.Next() {
+		for i, _ := range columns {
+			valuePtrs[i] = &values[i]
+			log.Println(i)
+		}
+		rows.Scan(valuePtrs...)
+		for i, col := range columns {
+			log.Println(i)
+			log.Println(col)
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows.Close()
+
+	sql = "select * from grazing_inspections where GlobalGUID in (select substr(GlobalID, 2, length(GlobalID)-2) from grazing_permittees where OBJECTID in(16))"
+	sql = "select substr(GlobalID, 2, length(GlobalID)-2) as GlobalGUID from grazing_permittees where OBJECTID in(16)"
+	sql = "select OBJECTID,cows,yearling_heifers,steer_calves,yearling_steers,bulls,mares,geldings,studs,fillies,colts,ewes,lambs,rams,wethers,kids,billies,nannies,Comments,GlobalGUID,created_user,created_date,last_edited_user,last_edited_date,reviewer_name,reviewer_date,reviewer_title,GlobalID from grazing_inspections"
+	sql = "select * from grazing_permittees"
+	sql = "select OBJECTID from grazing_inspections"
+
+	log.Println(sql)
+	rows, err = Db.Query(sql) //relationshipIdInt
+	columns, _ = rows.Columns()
+	count = len(columns)
+	values = make([]interface{}, count)
+	valuePtrs = make([]interface{}, count)
+
+	for rows.Next() {
+		for i := range columns {
+			valuePtrs[i] = &values[i]
+			log.Println(i)
+		}
+		rows.Scan(valuePtrs...)
+		for i, col := range columns {
+			log.Println(i)
+			log.Println(col)
+			//val := values[i]
+			//log.Printf("%v", val.([]uint8))
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows.Close()
+
+	os.Exit(1)
 */

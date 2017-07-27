@@ -31,6 +31,7 @@ type Collector struct {
 	HttpsPort      string             `json:"httpsPort"`
 	DefaultProject string             `json:"defaultProject"`
 	Projects       map[string]Project `json:"projects"`
+	IsOpened       bool
 	//Services
 
 	//Services map[string]map[string]Service
