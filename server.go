@@ -38,7 +38,7 @@ func main() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	//os.Getenv("ORIGIN_ALLOWED")
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-	fmt.Println("Public URL: " + config.Project.Hostname)
+	fmt.Println("Public URL: " + config.Collector.Hostname)
 
 	//  Start HTTP
 	go func() {

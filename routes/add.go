@@ -65,13 +65,13 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			if key == parentObjectID {
 				i.Attributes[parentObjectID] = objectid
 				cols += sep + config.DblQuote(key)
-				p += sep + config.GetParam(c)
+				p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
 				sep = ","
 				vals = append(vals, objectid)
 				c++
 			} else {
 				cols += sep + config.DblQuote(key)
-				p += sep + config.GetParam(c)
+				p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
 				sep = ","
 				if key == joinField {
 					j = strings.ToUpper(j.(string))
@@ -100,23 +100,23 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		}
 		if len(globalIdName) > 0 {
 			cols += sep + config.DblQuote(globalIdName)
-			p += sep + config.GetParam(c)
+			p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
 			vals = append(vals, uuidstr)
 			i.Attributes[globalIdName] = uuidstr
 			c++
 		}
-		if config.Collector.Projects[name]["layers"][id]["editFieldsInfo"] != nil {
-			//joinField = config.Collector.Projects[name]["layers"][id]["joinField"].(string)
+		if config.Collector.Projects[name].Layers[id]["editFieldsInfo"] != nil {
+			//joinField = config.Collector.Projects[name].Layers[id]["joinField"].(string)
 			current_time := time.Now().Local()
 
-			if rec, ok := config.Collector.Projects[name]["layers"][id]["editFieldsInfo"].(map[string]interface{}); ok {
+			if rec, ok := config.Collector.Projects[name].Layers[id]["editFieldsInfo"].(map[string]interface{}); ok {
 				for key, j := range rec {
-					//for key, j := range config.Collector.Projects[name]["layers"][id]["editFieldsInfo"] {
-					cols += sep + config.DblQuote(j.(string)) //config.Collector.Projects[name]["layers"][id]["editFieldsInfo"][key]
+					//for key, j := range config.Collector.Projects[name].Layers[id]["editFieldsInfo"] {
+					cols += sep + config.DblQuote(j.(string)) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 					if key == "creatorField" || key == "editorField" {
-						vals = append(vals, config.Project.Username)
-						p += sep + config.GetParam(c)
-						i.Attributes[key] = config.Project.Username
+						vals = append(vals, config.Collector.Username)
+						p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
+						i.Attributes[key] = config.Collector.Username
 						c++
 					} else if key == "creationDateField" || key == "editDateField" {
 						p += sep + config.DbTimeStamp                  //julianday('now')"
@@ -130,14 +130,14 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			}
 
 			/*
-				cols += sep + config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["creatorField"]
+				cols += sep + config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creatorField"]
 				p += sep + config.GetParam(c)
 				c++
 
-				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["creatorField"] = config.Project.Username
-				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["editorField"]=config.Project.Username
-				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["creationDateField"]=
-				config.Collector.Projects[name]["layers"][id]["editFieldsInfo"]["editDateField"]
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creatorField"] = config.Project.Username
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["editorField"]=config.Project.Username
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creationDateField"]=
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["editDateField"]
 			*/
 
 		}

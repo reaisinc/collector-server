@@ -109,7 +109,7 @@ func offline_load(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("/offline/" + table + "/" + field + "/" + queryField + "/" + value + " (" + r.Method + ")")
-	//tableName := config.Project.Services[name]["layers"][id]["data"].(string)
+	//tableName := config.Collector.Projects[name].Layers[id]["data"].(string)
 	//tableName = strings.ToUpper(tableName)
 	//log.Println("/offline/"+type+"/"+name)
 	dbName := "file:" + dbPath + config.SqlWalFlags //+ "?PRAGMA journal_mode=WAL"

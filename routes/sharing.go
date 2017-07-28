@@ -15,7 +15,7 @@ import (
 func sharing_info(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/rest/info")
 	response, _ := json.Marshal(map[string]interface{}{"owningSystemUrl": "http://" + config.Server,
-		"authInfo": map[string]interface{}{"tokenServicesUrl": "https://" + config.Project.Hostname + "/sharing/rest/generateToken", "isTokenBasedSecurity": true}})
+		"authInfo": map[string]interface{}{"tokenServicesUrl": "https://" + config.Collector.Hostname + "/sharing/rest/generateToken", "isTokenBasedSecurity": true}})
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 }

@@ -38,18 +38,22 @@ type Collector struct {
 	//map[string]Service
 }
 type Project struct {
-	Name string `json:"name"`
-	FGDB string `json:"fgdb"`
-	MXD  string `json:"mxd"`
-	PG   string `json:"pg"`
-	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
-	Layers        map[string]map[string]map[string]interface{} `json:"layers"`
-	Relationships map[string]map[string]map[string]interface{} `json:"relationships"`
+	Name          string                            `json:"name"`
+	FGDB          string                            `json:"fgdb"`
+	MXD           string                            `json:"mxd"`
+	PG            string                            `json:"pg"`
+	Layers        map[string]map[string]interface{} `json:"layers"`
+	Relationships map[string]map[string]interface{} `json:"relationships"`
 
-	DataSource string `json:"dataSource"`
-	DataName   string `json:"dataName"`
-	DataPath   string `json:"dataPath"`
-	DB         *sql.DB
+	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
+	//Layers        map[string]map[string]map[string]interface{} `json:"layers"`
+	//Relationships map[string]map[string]map[string]interface{} `json:"relationships"`
+
+	ReplicaPath string `json:"replica"`
+	DataSource  string `json:"dataSource"`
+	DataName    string `json:"dataName"`
+	DataPath    string `json:"dataPath"`
+	DB          *sql.DB
 }
 
 type FieldsStr struct {

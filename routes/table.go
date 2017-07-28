@@ -23,12 +23,12 @@ func table_id(w http.ResponseWriter, r *http.Request) {
 		tableName = id
 
 	} else {
-		tableName = config.Project.Services[name]["layers"][id]["data"].(string)
+		tableName = config.Collector.Projects[name].Layers[id]["data"].(string)
 	}
 	dbPath := r.URL.Query().Get("db")
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/table/" + id)
-	var dbName = "file:" + config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase" + "?PRAGMA journal_mode=WAL"
+	var dbName = "file:" + config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase" + config.SqlWalFlags
 	if len(dbPath) > 0 {
 		if config.DbSource != config.PGSQL {
 			if config.DbSqliteDbName != dbPath {

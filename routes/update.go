@@ -63,7 +63,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 				if j == nil {
 					cols += sep + config.DblQuote(key) + "=null"
 				} else {
-					cols += sep + config.DblQuote(key) + "=" + config.GetParam(c)
+					cols += sep + config.DblQuote(key) + "=" + config.getParam(config.Collector.Projects[name].DbSource,c)
 					vals = append(vals, j)
 					c++
 				}
@@ -75,20 +75,20 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		}
 		//cast(strftime('%s','now') as int)
 
-		if config.Project.Services[name]["layers"][id]["editFieldsInfo"] != nil {
-			//joinField = config.Project.Services[name]["layers"][id]["joinField"].(string)
-			//for key, j := range config.Project.Services[name]["layers"][id]["editFieldsInfo"] {
+		if config.Collector.Projects[name].Layers[id]["editFieldsInfo"] != nil {
+			//joinField = config.Collector.Projects[name].Layers[id]["joinField"].(string)
+			//for key, j := range config.Collector.Projects[name].Layers[id]["editFieldsInfo"] {
 			current_time := time.Now().Local()
-			if rec, ok := config.Project.Services[name]["layers"][id]["editFieldsInfo"].(map[string]interface{}); ok {
+			if rec, ok := config.Collector.Projects[name].Layers[id]["editFieldsInfo"].(map[string]interface{}); ok {
 				for key, j := range rec {
 					if key == "creatorField" || key == "editorField" {
 						if key == "creatorField" {
 							continue
 						}
-						vals = append(vals, config.Project.Username)
-						cols += sep + config.DblQuote(j.(string)) + "=" + config.GetParam(c) //config.Project.Services[name]["layers"][id]["editFieldsInfo"][key]
-						i.Attributes[key] = config.Project.Username
-						updates[num].Attributes[key] = config.Project.Username
+						vals = append(vals, config.Collector.Username)
+						cols += sep + config.DblQuote(j.(string)) + "=" + config.getParam(config.Collector.Projects[name].DbSource,c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+						i.Attributes[key] = config.Collector.Username
+						updates[num].Attributes[key] = config.Collector.Username
 						c++
 					} else if key == "creationDateField" || key == "editDateField" {
 						//vals = append(vals, "julianday('now')")
@@ -104,20 +104,20 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 				}
 			}
 			/*
-				cols += sep + config.Project.Services[name]["layers"][id]["editFieldsInfo"]["creatorField"]
+				cols += sep + config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creatorField"]
 				p += sep + config.GetParam(c)
 				c++
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["creatorField"] = config.Project.Username
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["editorField"]=config.Project.Username
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["creationDateField"]=
-				config.Project.Services[name]["layers"][id]["editFieldsInfo"]["editDateField"]
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creatorField"] = config.Collector.Username
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["editorField"]=config.Collector.Username
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creationDateField"]=
+				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["editDateField"]
 			*/
 		}
 		//add objectid last
 		vals = append(vals, objectid)
 		//tableName = strings.Replace(tableName, "_evw", "", -1)
 
-		log.Println("update " + config.Schema + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(len(vals)))
+		log.Println("update " + config.Schema + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.getParam(config.Collector.Projects[name].DbSource,len(vals)))
 		log.Print(vals)
 		//log.Print(objId)
 		var sql string

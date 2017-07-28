@@ -37,6 +37,6 @@ delta*.geodatabase
 settings.ini
 logfile.txt
 *.bin
-
+test.go*
 .vscode/launch.json
 .vscode/tasks.json

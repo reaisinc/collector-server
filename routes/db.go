@@ -17,40 +17,62 @@ import (
 func db(w http.ResponseWriter, r *http.Request) {
 	log.Println("/db (" + r.Method + ")")
 	//vars := mux.Vars(r)
-	var id int
-	idstr := r.URL.Query().Get("id")
+	str := "<ul>"
+	for _, val := range config.Collector.Projects {
+		str += "<li>" + val.DataSource + "</li>"
+		//fmt.Printf("%v: %v\n", key, val)
+		//fmt.Println()
+		/*
+			for _, val1 := range val.Layers {
+				//fmt.Printf("%v: %v\n", key1, val1)
+				//fmt.Println()
+				for key2, val2 := range val1 {
+					log.Printf("%v: %v\n", key2, val2)
+					//fmt.Println()
+				}
 
-	if len(idstr) > 0 {
-		id, _ = strconv.Atoi(idstr)
-	} else {
-		id = config.DbSource
+			}
+		*/
 	}
+	str += "</ul>"
 
-	str := ""
+	//log.Println(Collector.Projects["layers"].ReplicaPath)
+	//log.Println(Collector.Projects["layers"].Layers["0"]["oidname"].(string))
+	/*
+		var id int
+		idstr := r.URL.Query().Get("id")
+
+		if len(idstr) > 0 {
+			id, _ = strconv.Atoi(idstr)
+		} else {
+			id = config.DbSource
+		}
+	*/
 	//	PGSQL   = 1
 	//	SQLITE3 = 2
 	//	FILE    = 3
-
-	if id == 3 {
-		str += "<li>Static JSON files <b style='color:red'>active </b></li>"
-		config.SetDatasource(config.FILE)
-	} else {
-		str += "<li>Static JSON files <a href='/db?id=3'>enable</a> </li>"
-	}
-	if id == 2 {
-		str += "<li>Sqlite <b style='color:red'>active </b> </li>"
-		config.SetDatasource(config.SQLITE3)
-	} else {
-		str += "<li>Sqlite <a href='/db?id=2'>enable</a> </li>"
-	}
-	if id == 1 {
-		str += "<li>Postgresql <b style='color:red'>active </b> </li>"
-		config.SetDatasource(config.PGSQL)
-	} else {
-		str += "<li>Postgresql <a href='/db?id=1'>enable</a> </li>"
-	}
+	/*
+		if id == 3 {
+			str += "<li>Static JSON files <b style='color:red'>active </b></li>"
+			config.SetDatasource(config.FILE)
+		} else {
+			str += "<li>Static JSON files <a href='/db?id=3'>enable</a> </li>"
+		}
+		if id == 2 {
+			str += "<li>Sqlite <b style='color:red'>active </b> </li>"
+			config.SetDatasource(config.SQLITE3)
+		} else {
+			str += "<li>Sqlite <a href='/db?id=2'>enable</a> </li>"
+		}
+		if id == 1 {
+			str += "<li>Postgresql <b style='color:red'>active </b> </li>"
+			config.SetDatasource(config.PGSQL)
+		} else {
+			str += "<li>Postgresql <a href='/db?id=1'>enable</a> </li>"
+		}
+	*/
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("<h1>Current data source</h1><ul>" + str + "</ul>"))
+	w.Write([]byte("<h1>Data source</h1><ul>" + str + "</ul>"))
 
 }
 
@@ -70,7 +92,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/db/" + id)
 
 	var dbName = config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
-	//var parentObjectID = config.Project.Services[name]["layers"][id]["oidname"].(string)
+	//var parentObjectID = config.Collector.Projects[name].Layers[id]["oidname"].(string)
 	if len(dbPath) > 0 {
 		if config.DbSqliteDbName != dbPath {
 			if config.DbSqliteQuery != nil {
@@ -119,7 +141,6 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			response, _ := json.Marshal(map[string]interface{}{"response": err.Error()})
 			w.Write(response)
-
 		}
 		_, err = stmt.Exec(string(body), idInt)
 		//db.Close()

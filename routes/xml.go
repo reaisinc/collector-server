@@ -25,7 +25,7 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	//idInt, _ := strconv.Atoi(id)
 	dbPath := r.URL.Query().Get("db")
-	tableName := config.Project.Services[name]["layers"][id]["data"].(string)
+	tableName := config.Collector.Projects[name].Layers[id]["data"].(string)
 	tableName = strings.ToUpper(tableName)
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/xml/" + id)

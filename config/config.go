@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	PGSQL   = 1
-	SQLITE3 = 2
-	FILE    = 3
+	PGSQL   = "pgsql"
+	SQLITE3 = "sqlite"
+	FILE    = "file"
 )
 
 //var Catalogs map[string]structs.Catalog
@@ -92,41 +92,47 @@ func Initialize() {
 	//}
 	//DataPath = pwd + string(os.PathSeparator) + DataPath //+ string(os.PathSeparator)
 	//var err error
-	var DbName string
+	//var DbName string
 
 	if len(os.Args) > 1 {
 		for i := 1; i < len(os.Args); i++ {
 			//log.Println(os.Args[i][0] == 45)
-			if os.Args[i] == "-sqlite" {
-				DbSource = SQLITE3
-				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 { //&& len(os.Args[i+1]) > 0 && os.Args[i+1][0] != 45
-					DbName = os.Args[i+1]
-				} else {
-					//DbName = pwd + string(os.PathSeparator) + "catalogs/collectorDb.sqlite"
-					fmt.Println("No sqlite path entered")
-					fmt.Println("Example:  catalogs/collectorDb.sqlite")
-					os.Exit(1)
-				}
-			} else if os.Args[i] == "-pgsql" {
-				DbSource = PGSQL
-				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 { // && len(os.Args[i+1]) > 0 && os.Args[i+1][0] != 45
-					DbName = os.Args[i+1]
-				} else {
-					fmt.Println("No Postgresql connection string entered")
-					fmt.Println("Example:  user=postgres dbname=gis host=192.168.99.100")
-					os.Exit(1)
+			/*
+					if os.Args[i] == "-sqlite" {
+						DbSource = SQLITE3
+						if len(os.Args) > i+1 && os.Args[i+1][0] != 45 { //&& len(os.Args[i+1]) > 0 && os.Args[i+1][0] != 45
+							DbName = os.Args[i+1]
+						} else {
+							//DbName = pwd + string(os.PathSeparator) + "catalogs/collectorDb.sqlite"
+							fmt.Println("No sqlite path entered")
+							fmt.Println("Example:  catalogs/collectorDb.sqlite")
+							os.Exit(1)
+						}
+					} else if os.Args[i] == "-pgsql" {
+						DbSource = PGSQL
+						if len(os.Args) > i+1 && os.Args[i+1][0] != 45 { // && len(os.Args[i+1]) > 0 && os.Args[i+1][0] != 45
+							DbName = os.Args[i+1]
+						} else {
+							fmt.Println("No Postgresql connection string entered")
+							fmt.Println("Example:  user=postgres dbname=gis host=192.168.99.100")
+							os.Exit(1)
 
-					//DbName = "user=postgres dbname=gis host=192.168.99.100"
-				}
-			} else if os.Args[i] == "-data" {
-				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 {
-					DataPath, _ = filepath.Abs(os.Args[i+1])
-				} else {
-					fmt.Println("No data path to catalogs entered")
-					os.Exit(1)
-				}
-				//ServiceName = filepath.Base(os.Args[i+1])
-			} else if os.Args[i] == "-p" && len(os.Args) > i+1 {
+							//DbName = "user=postgres dbname=gis host=192.168.99.100"
+						}
+					} else if os.Args[i] == "-data" {
+						if len(os.Args) > i+1 && os.Args[i+1][0] != 45 {
+							DataPath, _ = filepath.Abs(os.Args[i+1])
+						} else {
+							fmt.Println("No data path to catalogs entered")
+							os.Exit(1)
+						}
+						//ServiceName = filepath.Base(os.Args[i+1])
+					} else
+				} else if os.Args[i] == "-file" {
+					DbSource = FILE
+					//LoadConfigurationFromFile()
+			*/
+			if os.Args[i] == "-p" && len(os.Args) > i+1 {
 				HTTPPort = ":" + os.Args[i+1]
 			} else if os.Args[i] == "-https" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
 				HTTPSPort = ":" + os.Args[i+1]
@@ -134,9 +140,6 @@ func Initialize() {
 				Pem = os.Args[i+1]
 			} else if os.Args[i] == "-cert" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
 				Cert = os.Args[i+1]
-			} else if os.Args[i] == "-file" {
-				DbSource = FILE
-				//LoadConfigurationFromFile()
 			} else if os.Args[i] == "-h" {
 				fmt.Println("Usage:")
 				fmt.Println("go run server.go -p HTTP Port -https HTTPS Port -data <path to catalogs folder> -sqlite <path to service .sqlite> -pgsql <connection string for Postgresql> -pem <path to pem> -cert <path to cert> -h [show help]")
@@ -146,21 +149,23 @@ func Initialize() {
 	} else if len(os.Getenv("DB_SOURCE")) > 0 {
 		//read in from environment variables
 		DataPath, _ = filepath.Abs(os.Getenv("DATA_PATH"))
+		/*
 
-		tmpSrc := os.Getenv("DB_SOURCE")
-		if len(tmpSrc) > 0 {
-			if tmpSrc == "PGSQL" {
-				DbSource = PGSQL
-				DbName = os.Getenv("DB_NAME")
-			} else if tmpSrc == "SQLITE" {
-				DbSource = SQLITE3
-				DbName = os.Getenv("DB_NAME")
+			tmpSrc := os.Getenv("DB_SOURCE")
+			if len(tmpSrc) > 0 {
+				if tmpSrc == "PGSQL" {
+					DbSource = PGSQL
+					//DbName = os.Getenv("DB_NAME")
+				} else if tmpSrc == "SQLITE" {
+					DbSource = SQLITE3
+					//DbName = os.Getenv("DB_NAME")
+				} else {
+					DbSource = FILE
+				}
 			} else {
 				DbSource = FILE
 			}
-		} else {
-			DbSource = FILE
-		}
+		*/
 		/*
 			} else if _, err := os.Stat("catalogs/collectorDb.sqlite"); !os.IsNotExist(err) {
 				DbName = "catalogs/collectorDb.sqlite"
@@ -208,6 +213,7 @@ func Initialize() {
 		*/
 	} //else {
 	//DataPath, _ = filepath.Abs(DataPath)
+
 	DataPath, _ = filepath.Abs(DataPath)
 	if _, err := os.Stat(DataPath + string(os.PathSeparator) + "config.json"); os.IsNotExist(err) {
 		DataPath = DataPath + string(os.PathSeparator) + "catalogs"
@@ -468,30 +474,32 @@ func Initialize() {
 
 	//DataPath = RootPath        //+ string(os.PathSeparator)        //+ defaultService + string(os.PathSeparator) + "services" + string(os.PathSeparator)
 
-	ReplicaPath = DataPath     //+ string(os.PathSeparator)     //+ defaultService + string(os.PathSeparator) + "replicas" + string(os.PathSeparator)
-	AttachmentsPath = DataPath //+ string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "attachments" //+ string(os.PathSeparator)
-	UploadPath = DataPath + string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "attachments"
+	/*
+		ReplicaPath = DataPath     //+ string(os.PathSeparator)     //+ defaultService + string(os.PathSeparator) + "replicas" + string(os.PathSeparator)
+		AttachmentsPath = DataPath //+ string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "attachments" //+ string(os.PathSeparator)
+		UploadPath = DataPath + string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "attachments"
 
-	log.Println("Service name: " + ServiceName)
-	log.Println("Data path: " + DataPath)
-	log.Println("Replica path: " + ReplicaPath)
-	log.Println("Attachments path: " + AttachmentsPath)
-	var DbSourceName string
-	switch DbSource {
-	case FILE:
-		DbSourceName = "Filesystem"
-		break
-	case PGSQL:
-		DbSourceName = "Postgresql"
-		break
-	case SQLITE3:
-		DbSourceName = "Sqlite"
-		break
-	default:
-		DbSourceName = "Unknown"
-	}
-	log.Println("Data source: " + DbSourceName)
-	log.Println("Data name" + DbName)
+		log.Println("Service name: " + ServiceName)
+		log.Println("Data path: " + DataPath)
+		log.Println("Replica path: " + ReplicaPath)
+		log.Println("Attachments path: " + AttachmentsPath)
+		var DbSourceName string
+		switch DbSource {
+		case FILE:
+			DbSourceName = "Filesystem"
+			break
+		case PGSQL:
+			DbSourceName = "Postgresql"
+			break
+		case SQLITE3:
+			DbSourceName = "Sqlite"
+			break
+		default:
+			DbSourceName = "Unknown"
+		}
+		log.Println("Data source: " + DbSourceName)
+		log.Println("Data name" + DbName)
+	*/
 
 	log.Printf("HTTP Port: %v\n", HTTPPort)
 	log.Printf("HTTPS Port: %v\n", HTTPSPort)
@@ -508,7 +516,7 @@ func initDB() {
 		})
 }
 
-func GetParam(i int) string {
+func GetParam(DbSource string, i int) string {
 	if DbSource == SQLITE3 {
 		return "?"
 	}
@@ -553,6 +561,7 @@ func SetDatasource(newDatasource int) {
 	}
 }
 */
+/*
 func LoadConfiguration() {
 
 	sql := "select json from catalog where name=" + GetParam(1)
@@ -582,7 +591,7 @@ func LoadConfiguration() {
 	//	//ServiceName = val[i]
 	//}
 }
-
+*/
 func LoadConfigurationFromFile() {
 	configFile = DataPath + string(os.PathSeparator) + "config.json"
 	//var json []byte
@@ -608,7 +617,8 @@ func LoadConfigurationFromFile() {
 
 //GetArcService queries the database for service layer entries
 func GetArcService(catalog string, service string, layerid int, dtype string, dbPath string) []byte {
-	if DbSource == FILE {
+
+	if Collector.Projects[service].DataSource == FILE {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -632,7 +642,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 		}
 		return file
 	}
-	sql := "select json from services where service like " + GetParam(1) + " and name=" + GetParam(2) + " and layerid=" + GetParam(3) + " and type=" + GetParam(4)
+	sql := "select json from services where service like " + GetParam(Collector.Projects[catalog].DataSource, 1) + " and name=" + GetParam(Collector.Projects[catalog].DataSource, 2) + " and layerid=" + GetParam(Collector.Projects[catalog].DataSource, 3) + " and type=" + GetParam(Collector.Projects[catalog].DataSource, 4)
 	log.Printf("Query: select json from services where service like '%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 	stmt, err := Db.Prepare(sql)
 	if err != nil {
@@ -649,7 +659,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 
 //GetArcCatalog queries the database for top level catalog entries
 func GetArcCatalog(service string, dtype string, dbPath string) []byte {
-	if DbSource == FILE || service == "config" {
+	if Collector.Projects[service].DataSource == FILE || service == "config" {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -667,7 +677,7 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 		return file
 
 	}
-	sql := "select json from catalog where name=" + GetParam(1) + " and type=" + GetParam(2)
+	sql := "select json from catalog where name=" + GetParam(Collector.Projects[service].DataSource, 1) + " and type=" + GetParam(Collector.Projects[service].DataSource, 2)
 	log.Printf("Query: select json from catalog where name='%v' and type='%v'", service, dtype)
 
 	stmt, err := Db.Prepare(sql)
@@ -686,7 +696,7 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 }
 
 func SetArcService(json []byte, catalog string, service string, layerid int, dtype string, dbPath string) bool {
-	if DbSource == FILE {
+	if Collector.Projects[service].DataSource == FILE {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -711,7 +721,7 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 		return true
 	}
 
-	sql := "update services set json=" + GetParam(1) + " where service like " + GetParam(2) + " and name=" + GetParam(3) + " and layerid=" + GetParam(4) + " and type=" + GetParam(5)
+	sql := "update services set json=" + GetParam(Collector.Projects[catalog].DataSource, 1) + " where service like " + GetParam(Collector.Projects[catalog].DataSource, 2) + " and name=" + GetParam(Collector.Projects[catalog].DataSource, 3) + " and layerid=" + GetParam(Collector.Projects[catalog].DataSource, 4) + " and type=" + GetParam(Collector.Projects[catalog].DataSource, 5)
 	log.Printf("Query: update services set json=<json> where service like '%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 	stmt, err := Db.Prepare(sql)
 	if err != nil {
@@ -729,7 +739,7 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 
 //GetArcCatalog queries the database for top level catalog entries
 func SetArcCatalog(json []byte, service string, dtype string, dbPath string) bool {
-	if DbSource == FILE || service == "config" {
+	if Collector.Projects[service].DataSource == FILE || service == "config" {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -745,7 +755,7 @@ func SetArcCatalog(json []byte, service string, dtype string, dbPath string) boo
 		return true
 	}
 
-	sql := "update catalog set json=" + GetParam(1) + " where name=" + GetParam(2) + " and type=" + GetParam(3)
+	sql := "update catalog set json=" + GetParam(Collector.Projects[catalog].DataSource, 1) + " where name=" + GetParam(Collector.Projects[catalog].DataSource, 2) + " and type=" + GetParam(Collector.Projects[catalog].DataSource, 3)
 	log.Printf("Query: update catalog set json=<json> where name='%v' and type='%v'", service, dtype)
 
 	stmt, err := Db.Prepare(sql)
@@ -774,7 +784,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 		objectIdsFloat = append(objectIdsFloat, j)
 	}
 
-	if DbSource == FILE {
+	if Collector.Projects[service].DataSource == FILE {
 		//config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json"
 
 		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), catalog+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", layerid, ".query.json")
@@ -806,7 +816,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 			log.Println(err)
 		}
 		return jsonstr
-	} else if DbSource == PGSQL {
+	} else if Collector.Projects[service].DataSource == PGSQL {
 		sql := "select json from " + Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
 		log.Printf("select json from "+Schema+"services where service='%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 		stmt, err := Db.Prepare(sql)
@@ -843,7 +853,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 			log.Println(err)
 		}
 		return fields
-	} else if DbSource == SQLITE3 {
+	} else if Collector.Projects[service].DataSource == SQLITE3 {
 		sql := "select json from services where service=? and name=? and layerid=? and type=?"
 		log.Printf("select json from services where service='%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 		stmt, err := Db.Prepare(sql)
