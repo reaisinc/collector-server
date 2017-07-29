@@ -30,30 +30,28 @@ type Collector struct {
 	HttpPort       string             `json:"httpPort"`
 	HttpsPort      string             `json:"httpsPort"`
 	DefaultProject string             `json:"defaultProject"`
+	DefaultDataSource string            `json:"defaultDataSource"`
 	Projects       map[string]Project `json:"projects"`
-	IsOpened       bool
+	IsLoaded       bool
 	//Services
 
 	//Services map[string]map[string]Service
 	//map[string]Service
 }
+
 type Project struct {
-	Name          string                            `json:"name"`
-	FGDB          string                            `json:"fgdb"`
-	MXD           string                            `json:"mxd"`
-	PG            string                            `json:"pg"`
+	Name string `json:"name"`
+	FGDB string `json:"fgdb"`
+	MXD  string `json:"mxd"`
+	PG   string `json:"pg"`
+	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
 	Layers        map[string]map[string]interface{} `json:"layers"`
 	Relationships map[string]map[string]interface{} `json:"relationships"`
 
-	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
-	//Layers        map[string]map[string]map[string]interface{} `json:"layers"`
-	//Relationships map[string]map[string]map[string]interface{} `json:"relationships"`
-
-	ReplicaPath string `json:"replica"`
-	DataSource  string `json:"dataSource"`
-	DataName    string `json:"dataName"`
-	DataPath    string `json:"dataPath"`
-	DB          *sql.DB
+	DataSource string `json:"dataSource"`
+	DataName   string `json:"dataName"`
+	DataPath   string `json:"dataPath"`
+	DB         *sql.DB
 }
 
 type FieldsStr struct {

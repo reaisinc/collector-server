@@ -65,13 +65,13 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			if key == parentObjectID {
 				i.Attributes[parentObjectID] = objectid
 				cols += sep + config.DblQuote(key)
-				p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
+				p += sep + config.GetParam(config.Collector.Projects[name].DataSource, c)
 				sep = ","
 				vals = append(vals, objectid)
 				c++
 			} else {
 				cols += sep + config.DblQuote(key)
-				p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
+				p += sep + config.GetParam(config.Collector.Projects[name].DataSource, c)
 				sep = ","
 				if key == joinField {
 					j = strings.ToUpper(j.(string))
@@ -100,7 +100,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		}
 		if len(globalIdName) > 0 {
 			cols += sep + config.DblQuote(globalIdName)
-			p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
+			p += sep + config.GetParam(config.Collector.Projects[name].DataSource, c)
 			vals = append(vals, uuidstr)
 			i.Attributes[globalIdName] = uuidstr
 			c++
@@ -115,7 +115,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 					cols += sep + config.DblQuote(j.(string)) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 					if key == "creatorField" || key == "editorField" {
 						vals = append(vals, config.Collector.Username)
-						p += sep + config.getParam(config.Collector.Projects[name].DataSource, c)
+						p += sep + config.GetParam(config.Collector.Projects[name].DataSource, c)
 						i.Attributes[key] = config.Collector.Username
 						c++
 					} else if key == "creationDateField" || key == "editDateField" {
@@ -162,7 +162,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		if err != nil {
 			log.Println(err.Error())
 		} else {
-			if config.DbSource == config.SQLITE3 {
+			if config.Collector.Projects[name].DataSource == config.SQLITE3 {
 				objectid, err := res.LastInsertId()
 				if err != nil {
 					println("Error:", err.Error())
@@ -173,7 +173,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		}
 		//stmt.Close()
 
-		if config.DbSource == config.PGSQL {
+		if config.Collector.Projects[name].DataSource == config.PGSQL {
 			//addsTxt = addsTxt[15 : len(addsTxt)-2]
 			sql = "update " + config.Schema + "services set json=jsonb_set(json,'{features}',json->'features' || $1::jsonb,true) where type='query' and layerId=$2"
 			log.Println(sql)
@@ -194,7 +194,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 				log.Println(err.Error())
 			}
 			stmt.Close()
-		} else if config.DbSource == config.SQLITE3 {
+		} else if config.Collector.Projects[name].DataSource == config.SQLITE3 {
 			sql := "select json from " + config.Schema + "services where type='query' and layerId=?"
 			stmt, err := config.Db.Prepare(sql)
 			if err != nil {

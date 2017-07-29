@@ -40,3 +40,4 @@ logfile.txt
 test.go*
 .vscode/launch.json
 .vscode/tasks.json
+catalogs.1/*

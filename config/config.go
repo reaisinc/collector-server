@@ -53,8 +53,8 @@ var UUID = ""
 var configFile = DataPath + string(os.PathSeparator) + "config.json"
 var ArcGisVersion = "3.8"
 
-var Db *sql.DB
-var DbQuery *sql.DB
+//var Db *sql.DB
+//var DbQuery *sql.DB
 var DbSqliteQuery *sql.DB
 var DbSqliteDbName string
 
@@ -615,6 +615,13 @@ func LoadConfigurationFromFile() {
 
 }
 
+func GetDataBase(project structs.Project) *sql.DB {
+	if project.DB == nil {
+
+	}
+	return project.DB
+}
+
 //GetArcService queries the database for service layer entries
 func GetArcService(catalog string, service string, layerid int, dtype string, dbPath string) []byte {
 
@@ -644,6 +651,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 	}
 	sql := "select json from services where service like " + GetParam(Collector.Projects[catalog].DataSource, 1) + " and name=" + GetParam(Collector.Projects[catalog].DataSource, 2) + " and layerid=" + GetParam(Collector.Projects[catalog].DataSource, 3) + " and type=" + GetParam(Collector.Projects[catalog].DataSource, 4)
 	log.Printf("Query: select json from services where service like '%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
+	Db := GetDataBase(Collector.Projects[catalog])
 	stmt, err := Db.Prepare(sql)
 	if err != nil {
 		log.Println(err.Error())
@@ -679,7 +687,7 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 	}
 	sql := "select json from catalog where name=" + GetParam(Collector.Projects[service].DataSource, 1) + " and type=" + GetParam(Collector.Projects[service].DataSource, 2)
 	log.Printf("Query: select json from catalog where name='%v' and type='%v'", service, dtype)
-
+	Db := GetDataBase(Collector.Projects[catalog])
 	stmt, err := Db.Prepare(sql)
 	if err != nil {
 		log.Println(err.Error())
@@ -720,7 +728,7 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 		}
 		return true
 	}
-
+	Db := GetDataBase(Collector.Projects[catalog])
 	sql := "update services set json=" + GetParam(Collector.Projects[catalog].DataSource, 1) + " where service like " + GetParam(Collector.Projects[catalog].DataSource, 2) + " and name=" + GetParam(Collector.Projects[catalog].DataSource, 3) + " and layerid=" + GetParam(Collector.Projects[catalog].DataSource, 4) + " and type=" + GetParam(Collector.Projects[catalog].DataSource, 5)
 	log.Printf("Query: update services set json=<json> where service like '%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 	stmt, err := Db.Prepare(sql)
@@ -754,8 +762,8 @@ func SetArcCatalog(json []byte, service string, dtype string, dbPath string) boo
 		}
 		return true
 	}
-
-	sql := "update catalog set json=" + GetParam(Collector.Projects[catalog].DataSource, 1) + " where name=" + GetParam(Collector.Projects[catalog].DataSource, 2) + " and type=" + GetParam(Collector.Projects[catalog].DataSource, 3)
+	Db := GetDataBase(Collector.Projects[catalog])
+	sql := "update catalog set json=" + GetParam(SQLITE3, 1) + " where name=" + GetParam(SQLITE3, 2) + " and type=" + GetParam(SQLITE3, 3)
 	log.Printf("Query: update catalog set json=<json> where name='%v' and type='%v'", service, dtype)
 
 	stmt, err := Db.Prepare(sql)
@@ -819,6 +827,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 	} else if Collector.Projects[service].DataSource == PGSQL {
 		sql := "select json from " + Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
 		log.Printf("select json from "+Schema+"services where service='%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
+		Db := GetDataBase(Collector.Projects[catalog])
 		stmt, err := Db.Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
@@ -856,6 +865,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 	} else if Collector.Projects[service].DataSource == SQLITE3 {
 		sql := "select json from services where service=? and name=? and layerid=? and type=?"
 		log.Printf("select json from services where service='%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
+		Db := GetDataBase(Collector.Projects[catalog])
 		stmt, err := Db.Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())

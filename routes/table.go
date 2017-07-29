@@ -30,7 +30,7 @@ func table_id(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/table/" + id)
 	var dbName = "file:" + config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase" + config.SqlWalFlags
 	if len(dbPath) > 0 {
-		if config.DbSource != config.PGSQL {
+		if config.Collector.Projects[name].DataSource != config.PGSQL {
 			if config.DbSqliteDbName != dbPath {
 				if config.DbSqliteQuery != nil {
 					config.DbSqliteQuery.Close()
@@ -63,7 +63,7 @@ func table_id(w http.ResponseWriter, r *http.Request) {
 	//if err != nil {
 	if config.DbSqliteQuery == nil {
 		//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
-		if config.DbSource == config.PGSQL {
+		if config.Collector.Projects[name].DataSource == config.PGSQL {
 			config.DbSqliteQuery = config.DbQuery
 		} else {
 			config.DbSqliteQuery, err = sql.Open("sqlite3", dbName)

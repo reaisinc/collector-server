@@ -250,7 +250,7 @@ func sharing_content_items(w http.ResponseWriter, r *http.Request) {
 func sharing_content_items_data(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
-	if config.DbSource != config.FILE {
+	if config.Collector.Projects[name].DataSource != config.FILE {
 		name = "%"
 
 	}
@@ -457,7 +457,8 @@ func sharing_community_groups(w http.ResponseWriter, r *http.Request) {
 func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	if config.DbSource != config.FILE {
+	name := id
+	if config.Collector.Projects[name].DataSource != config.FILE {
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)
@@ -477,7 +478,8 @@ func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request
 func sharing_content_items_info_thumbnail_v1(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	if config.DbSource != config.FILE {
+	name := id
+	if config.Collector.Projects[name].DataSource != config.FILE {
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)

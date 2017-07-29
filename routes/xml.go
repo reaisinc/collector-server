@@ -12,13 +12,14 @@ import (
 	"github.com/gorilla/mux"
 	config "github.com/traderboy/collector-server/config"
 )
+
 func xml(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/xml")
-		//w.Header().Set("Content-Type", "text/xml")
-		body := "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + r.URL.Query().Get("xml")
-		w.Write([]byte(body))
-	}
-	
+	w.Header().Set("Content-Type", "application/xml")
+	//w.Header().Set("Content-Type", "text/xml")
+	body := "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + r.URL.Query().Get("xml")
+	w.Write([]byte(body))
+}
+
 func xml_id(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
@@ -31,7 +32,7 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/xml/" + id)
 	var dbName = config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	if len(dbPath) > 0 {
-		if config.DbSource != config.PGSQL {
+		if config.Collector.Projects[name].DataSource != config.PGSQL {
 			if config.DbSqliteDbName != dbPath {
 				if config.DbSqliteQuery != nil {
 					config.DbSqliteQuery.Close()
@@ -53,7 +54,7 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	//if err != nil {
-	if config.DbSource == config.PGSQL {
+	if config.Collector.Projects[name].DataSource == config.PGSQL {
 		config.DbSqliteQuery = config.DbQuery
 	} else {
 		if config.DbSqliteQuery == nil {

@@ -63,7 +63,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 				if j == nil {
 					cols += sep + config.DblQuote(key) + "=null"
 				} else {
-					cols += sep + config.DblQuote(key) + "=" + config.getParam(config.Collector.Projects[name].DbSource,c)
+					cols += sep + config.DblQuote(key) + "=" + config.GetParam(config.Collector.Projects[name].DataSource, c)
 					vals = append(vals, j)
 					c++
 				}
@@ -86,7 +86,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 							continue
 						}
 						vals = append(vals, config.Collector.Username)
-						cols += sep + config.DblQuote(j.(string)) + "=" + config.getParam(config.Collector.Projects[name].DbSource,c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+						cols += sep + config.DblQuote(j.(string)) + "=" + config.GetParam(config.Collector.Projects[name].DataSource, c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 						i.Attributes[key] = config.Collector.Username
 						updates[num].Attributes[key] = config.Collector.Username
 						c++
@@ -117,13 +117,13 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		vals = append(vals, objectid)
 		//tableName = strings.Replace(tableName, "_evw", "", -1)
 
-		log.Println("update " + config.Schema + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.getParam(config.Collector.Projects[name].DbSource,len(vals)))
+		log.Println("update " + config.Schema + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.Projects[name].DataSource, len(vals)))
 		log.Print(vals)
 		//log.Print(objId)
 		var sql string
-		if config.DbSource == config.PGSQL {
-			sql = "update " + config.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(len(vals))
-		} else if config.DbSource == config.SQLITE3 {
+		if config.Collector.Projects[name].DataSource == config.PGSQL {
+			sql = "update " + config.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.Projects[name].DataSource, len(vals))
+		} else if config.Collector.Projects[name].DataSource == config.SQLITE3 {
 			sql = "update " + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=?"
 		}
 
@@ -152,7 +152,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		//sql = "update services set json=jsonb_set(json, array('features',elem_index::text, ,false) from (select pos - 1 as elem_index from services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=0 and elem->'attributes'->>'OBJECTID'='$2')"
 
 		updateTxt = updateTxt[15 : len(updateTxt)-2]
-		if config.DbSource == config.PGSQL {
+		if config.Collector.Projects[name].DataSource == config.PGSQL {
 			sql = "select pos-1  from " + config.Schema + "services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=$1 and elem->'attributes'->>'OBJECTID'=$2"
 
 			log.Println(sql)
@@ -184,7 +184,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 			}
 			stmt.Close()
 
-		} else if config.DbSource == config.SQLITE3 {
+		} else if config.Collector.Projects[name].DataSource == config.SQLITE3 {
 			sql = "select json from services where type='query' and layerId=?"
 			stmt, err = config.Db.Prepare(sql)
 			if err != nil {
