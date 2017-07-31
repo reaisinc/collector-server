@@ -27,7 +27,7 @@ func offline(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sqlstr := "SELECT 'json','GDB_ServiceItems','ItemInfo','DatasetName',\"DatasetName\",\"ItemType\",\"ItemId\" from \"GDB_ServiceItems\" UNION SELECT 'xml','GDB_Items','Definition','Name',\"Name\",\"ObjectID\",\"DatasetSubtype1\" FROM " + config.Schema + config.DblQuote("GDB_Items")
+	sqlstr := "SELECT 'json','GDB_ServiceItems','ItemInfo','DatasetName',\"DatasetName\",\"ItemType\",\"ItemId\" from \"GDB_ServiceItems\" UNION SELECT 'xml','GDB_Items','Definition','Name',\"Name\",\"ObjectID\",\"DatasetSubtype1\" FROM " + config.Collector.Schema + config.DblQuote("GDB_Items")
 	log.Printf("Query: " + sqlstr)
 
 	/*

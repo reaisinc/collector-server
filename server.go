@@ -42,23 +42,25 @@ func main() {
 
 	//  Start HTTP
 	go func() {
-		if len(config.Cert) > 0 && len(config.Pem) > 0 {
-			err := http.ListenAndServeTLS(config.HTTPSPort, config.Cert, config.Pem, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
+		if len(config.Collector.Cert) > 0 && len(config.Collector.Pem) > 0 {
+			err := http.ListenAndServeTLS(config.Collector.HttpsPort, config.Collector.Cert, config.Collector.Pem, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
 			if err != nil {
 				log.Fatal("Unable to start HTTPS server: ", err)
 			} else {
-				log.Println("Started HTTPS server on port " + config.HTTPSPort)
+				log.Println("Started HTTPS server on port " + config.Collector.HttpsPort)
 			}
 		} else {
 			log.Println("Unable to start HTTPS server.  Usage is limited to web page viewer only since Collector app must use HTTPS connection.")
 		}
 	}()
 	// Apply the CORS middleware to our top-level router, with the defaults.
-	err1 := http.ListenAndServe(config.HTTPPort, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
+	err1 := http.ListenAndServe(config.Collector.HttpPort, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
 	if err1 != nil {
+		//log.Println("HTTP server not started on port " + config.Collector.HttpPort)
 		log.Fatal("Unable to start HTTP server: ", err1)
+
 	} else {
-		log.Println("Started HTTP server on port " + config.HTTPPort)
+		log.Println("Started HTTP server on port " + config.Collector.HttpPort)
 	}
 	/*
 		go func() {

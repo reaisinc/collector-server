@@ -5,6 +5,12 @@ import (
 	"encoding/json"
 )
 
+const (
+	PGSQL   = "pgsql"
+	SQLITE3 = "sqlite"
+	FILE    = "file"
+)
+
 type Catalog struct {
 	//Services        JSONConfig
 	DataSource      int
@@ -21,37 +27,71 @@ type Catalog struct {
 
 //JSONConfig stores the metadata about a service
 type Collector struct {
-	Configuration  *sql.DB
-	Username       string             `json:"username"`
-	Hostname       string             `json:"hostname"`
-	SqliteDb       string             `json:"sqliteDb"`
-	Pem            string             `json:"pemPath"`
-	Cert           string             `json:"certPath"`
-	HttpPort       string             `json:"httpPort"`
-	HttpsPort      string             `json:"httpsPort"`
-	DefaultProject string             `json:"defaultProject"`
-	DefaultDataSource string            `json:"defaultDataSource"`
-	Projects       map[string]Project `json:"projects"`
-	IsLoaded       bool
-	//Services
+	Configuration     *sql.DB
+	DatabaseDB        *sql.DB
+	Username          string `json:"username"`
+	Hostname          string `json:"hostname"`
+	PG                string `json:"pg"`
+	DataSource        string `json:"dataSource"`
+	DataName          string `json:"dataName"`
+	SqliteDb          string `json:"sqliteDb"`
+	Pem               string `json:"pemPath"`
+	Cert              string `json:"certPath"`
+	HttpPort          string `json:"httpPort"`
+	HttpsPort         string `json:"httpsPort"`
+	DefaultProject    string `json:"defaultProject"`
+	DefaultDataSource string `json:"defaultDataSource"`
+	Schema            string `json:"schema,omitempty"`
+	UUID              string
+	DbTimeStamp       string
+	TableSuffix       string
 
+	Projects map[string]Project `json:"projects"`
+	IsLoaded bool
+	//Services
 	//Services map[string]map[string]Service
 	//map[string]Service
 }
 
 type Project struct {
-	Name string `json:"name"`
-	FGDB string `json:"fgdb"`
-	MXD  string `json:"mxd"`
-	PG   string `json:"pg"`
+	Name        string `json:"name"`
+	FGDB        string `json:"fgdb"`
+	MXD         string `json:"mxd"`
+	DataPath    string `json:"dataPath"`
+	ReplicaPath string `json:"replica"`
 	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
-	Layers        map[string]map[string]interface{} `json:"layers"`
-	Relationships map[string]map[string]interface{} `json:"relationships"`
+	//Layers        map[string]map[string]interface{} `json:"layers"`
+	//Relationships map[string]map[string]interface{} `json:"relationships"`
+	Layers        map[string]Layer        `json:"layers"`
+	Relationships map[string]Relationship `json:"relationships"`
+	ReplicaDB     *sql.DB
+}
 
-	DataSource string `json:"dataSource"`
-	DataName   string `json:"dataName"`
-	DataPath   string `json:"dataPath"`
-	DB         *sql.DB
+type Layer struct {
+	ItemID         string         `json:"itemId"`
+	Name           string         `json:"name"`
+	Type           string         `json:"type"`
+	Data           string         `json:"data"`
+	Oidname        string         `json:"oidname"`
+	Globaloidname  string         `json:"globaloidname"`
+	JoinField      string         `json:"joinField"`
+	ID             int            `json:"id"`
+	EditFieldsInfo *EditFieldInfo `json:"editFieldsInfo,omitempty"`
+}
+
+type Relationship struct {
+	Oid      int    `json:"oId"`
+	DId      int    `json:"dId"`
+	OTable   string `json:"oTable"`
+	OJoinKey string `json:"oJoinKey"`
+	DJoinKey string `json:"dJoinKey"`
+	DTable   string `json:"dTable"`
+}
+type EditFieldInfo struct {
+	CreatorField      string `json:"creatorField"`
+	EditDateField     string `json:"editDateField"`
+	EditorField       string `json:"editorField"`
+	CreationDateField string `json:"creationDateField"`
 }
 
 type FieldsStr struct {

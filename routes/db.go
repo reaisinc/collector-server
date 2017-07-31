@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-
+	//structs "github.com/traderboy/collector-server/structs"
 	config "github.com/traderboy/collector-server/config"
 )
 
@@ -19,7 +19,7 @@ func db(w http.ResponseWriter, r *http.Request) {
 	//vars := mux.Vars(r)
 	str := "<ul>"
 	for _, val := range config.Collector.Projects {
-		str += "<li>" + val.DataSource + "</li>"
+		str += "<li>" + val.Name + "</li>"
 		//fmt.Printf("%v: %v\n", key, val)
 		//fmt.Println()
 		/*
@@ -54,19 +54,19 @@ func db(w http.ResponseWriter, r *http.Request) {
 	/*
 		if id == 3 {
 			str += "<li>Static JSON files <b style='color:red'>active </b></li>"
-			config.SetDatasource(config.FILE)
+			config.SetDatasource(structs.FILE)
 		} else {
 			str += "<li>Static JSON files <a href='/db?id=3'>enable</a> </li>"
 		}
 		if id == 2 {
 			str += "<li>Sqlite <b style='color:red'>active </b> </li>"
-			config.SetDatasource(config.SQLITE3)
+			config.SetDatasource(structs.SQLITE3)
 		} else {
 			str += "<li>Sqlite <a href='/db?id=2'>enable</a> </li>"
 		}
 		if id == 1 {
 			str += "<li>Postgresql <b style='color:red'>active </b> </li>"
-			config.SetDatasource(config.PGSQL)
+			config.SetDatasource(structs.PGSQL)
 		} else {
 			str += "<li>Postgresql <a href='/db?id=1'>enable</a> </li>"
 		}
@@ -91,7 +91,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/db/" + id)
 
-	var dbName = config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	var dbName = config.Collector.Projects[name].ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	//var parentObjectID = config.Collector.Projects[name].Layers[id]["oidname"].(string)
 	if len(dbPath) > 0 {
 		if config.DbSqliteDbName != dbPath {
@@ -131,7 +131,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		//ret := config.SetArcService(body, name, "FeatureServer", idInt, "")
-		sql := "update " + config.Schema + config.DblQuote("GDB_ServiceItems") + " set " + fieldStr + "=? where " + config.DblQuote("OBJECTID") + "=?"
+		sql := "update " + config.Collector.Schema + config.DblQuote("GDB_ServiceItems") + " set " + fieldStr + "=? where " + config.DblQuote("OBJECTID") + "=?"
 		log.Println(sql)
 		//log.Println(body)
 		log.Println(id)
@@ -161,7 +161,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 	//Db.Exec(initializeStr)
 	log.Print("Sqlite database: " + dbName)
 	//sql := "SELECT \"DatasetName\",\"ItemId\",\"ItemInfo\",\"AdvancedDrawingInfo\" FROM \"GDB_ServiceItems\""
-	sql := "SELECT " + fieldStr + " FROM " + config.Schema + config.DblQuote("GDB_ServiceItems") + " where " + config.DblQuote("OBJECTID") + "=?"
+	sql := "SELECT " + fieldStr + " FROM " + config.Collector.Schema + config.DblQuote("GDB_ServiceItems") + " where " + config.DblQuote("OBJECTID") + "=?"
 	log.Printf("Query: "+sql+"%v", idInt)
 
 	stmt, err := config.DbSqliteQuery.Prepare(sql)

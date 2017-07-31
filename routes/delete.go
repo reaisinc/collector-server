@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/traderboy/arcrestgo/structs"
+	structs "github.com/traderboy/collector-server/structs"
 	config "github.com/traderboy/collector-server/config"
 )
 
@@ -19,10 +19,10 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 	result["globalId"] = nil
 	results = append(results, result)
 	//delete from table
-	log.Println("delete from " + config.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.Projects[name].DataSource, 1) + ")")
+	log.Println("delete from " + config.Collector.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.DataSource, 1) + ")")
 	log.Println("delete objectids:  " + deletesTxt + "/" + strconv.Itoa(objectid))
-	var sql = "delete from " + config.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.Projects[name].DataSource, 1) + ")"
-	stmt, err := config.DbQuery.Prepare(sql)
+	var sql = "delete from " + config.Collector.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.DataSource, 1) + ")"
+	stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -33,14 +33,14 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 	}
 	stmt.Close()
 
-	if config.Collector.Projects[name].DataSource == config.PGSQL {
-		sql := "select pos-1  from " + config.Schema + "services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=$1 and elem->'attributes'->>'OBJECTID'=$2"
+	if config.Collector.DataSource == structs.PGSQL {
+		sql := "select pos-1  from " + config.Collector.Schema + "services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=$1 and elem->'attributes'->>'OBJECTID'=$2"
 
 		log.Println(sql)
 		log.Printf("Layer ID: %v", id)
 		log.Printf("Objectid: %v", objectid)
 
-		rows, err := config.Db.Query(sql, id, objectid)
+		rows, err := config.Collector.DatabaseDB.Query(sql, id, objectid)
 
 		var rowId int
 		for rows.Next() {
@@ -51,10 +51,10 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 		}
 		rows.Close()
 		//sql = "update services set json=json->'features' - " + strconv.Itoa(rowId) + " where type='query' and layerId=$1"
-		sql = "update " + config.Schema + "services set json=json #- '{features," + strconv.Itoa(rowId) + "}' where type='query' and layerId=$1"
+		sql = "update " + config.Collector.Schema + "services set json=json #- '{features," + strconv.Itoa(rowId) + "}' where type='query' and layerId=$1"
 		log.Println(sql)
 		log.Printf("Row id: %v", rowId)
-		stmt, err := config.Db.Prepare(sql)
+		stmt, err := config.Collector.DatabaseDB.Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -64,13 +64,13 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 		}
 		stmt.Close()
 
-	} else if config.Collector.Projects[name].DataSource == config.SQLITE3 {
+	} else if config.Collector.DataSource == structs.SQLITE3 {
 		sql := "select json from services where type='query' and layerId=?"
-		stmt, err := config.Db.Prepare(sql)
+		stmt, err := config.Collector.DatabaseDB.Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		rows, err := config.Db.Query(sql, id, objectid)
+		rows, err := config.Collector.DatabaseDB.Query(sql, id, objectid)
 
 		var row []byte
 		for rows.Next() {
@@ -105,12 +105,12 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 		if err != nil {
 			log.Println(err)
 		}
-		tx, err := config.Db.Begin()
+		tx, err := config.Collector.DatabaseDB.Begin()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		sql = "update " + config.Schema + "services set json=? where type='query' and layerId=?"
+		sql = "update " + config.Collector.Schema + "services set json=? where type='query' and layerId=?"
 
 		stmt, err = tx.Prepare(sql)
 		if err != nil {

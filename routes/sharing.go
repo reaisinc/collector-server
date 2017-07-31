@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	config "github.com/traderboy/collector-server/config"
+	structs "github.com/traderboy/collector-server/structs"
 )
 
 func sharing_info(w http.ResponseWriter, r *http.Request) {
@@ -250,7 +251,7 @@ func sharing_content_items(w http.ResponseWriter, r *http.Request) {
 func sharing_content_items_data(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
-	if config.Collector.Projects[name].DataSource != config.FILE {
+	if config.Collector.DataSource != structs.FILE {
 		name = "%"
 
 	}
@@ -457,8 +458,8 @@ func sharing_community_groups(w http.ResponseWriter, r *http.Request) {
 func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	name := id
-	if config.Collector.Projects[name].DataSource != config.FILE {
+	//name := id
+	if config.Collector.DataSource != structs.FILE {
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)
@@ -478,8 +479,8 @@ func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request
 func sharing_content_items_info_thumbnail_v1(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	name := id
-	if config.Collector.Projects[name].DataSource != config.FILE {
+	//name := id
+	if config.Collector.DataSource != structs.FILE {
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)

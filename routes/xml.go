@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	config "github.com/traderboy/collector-server/config"
+	"github.com/traderboy/collector-server/structs"
 )
 
 func xml(w http.ResponseWriter, r *http.Request) {
@@ -26,13 +27,13 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	//idInt, _ := strconv.Atoi(id)
 	dbPath := r.URL.Query().Get("db")
-	tableName := config.Collector.Projects[name].Layers[id]["data"].(string)
+	tableName := config.Collector.Projects[name].Layers[id].Data
 	tableName = strings.ToUpper(tableName)
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/xml/" + id)
-	var dbName = config.ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	var dbName = config.Collector.Projects[name].ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	if len(dbPath) > 0 {
-		if config.Collector.Projects[name].DataSource != config.PGSQL {
+		if config.Collector.DataSource != structs.PGSQL {
 			if config.DbSqliteDbName != dbPath {
 				if config.DbSqliteQuery != nil {
 					config.DbSqliteQuery.Close()
@@ -54,8 +55,8 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	//if err != nil {
-	if config.Collector.Projects[name].DataSource == config.PGSQL {
-		config.DbSqliteQuery = config.DbQuery
+	if config.Collector.DataSource == structs.PGSQL {
+		config.DbSqliteQuery = config.Collector.Projects[name].ReplicaDB
 	} else {
 		if config.DbSqliteQuery == nil {
 			//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
@@ -75,7 +76,7 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		//ret := config.SetArcService(body, name, "FeatureServer", idInt, "")
-		sql := "update " + config.Schema + config.DblQuote("GDB_Items") + " set " + config.DblQuote("Definition") + "=? where " + config.DblQuote("PhysicalName") + "=?" //OBJECTID=?"
+		sql := "update " + config.Collector.Schema + config.DblQuote("GDB_Items") + " set " + config.DblQuote("Definition") + "=? where " + config.DblQuote("PhysicalName") + "=?" //OBJECTID=?"
 		stmt, err := config.DbSqliteQuery.Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
@@ -103,7 +104,7 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 	//Db.Exec(initializeStr)
 	log.Print("Sqlite database: " + dbName)
 	//sql := "SELECT \"DatasetName\",\"ItemId\",\"ItemInfo\",\"AdvancedDrawingInfo\" FROM \"GDB_ServiceItems\""
-	sql := "SELECT " + config.DblQuote("Definition") + " FROM " + config.Schema + config.DblQuote("GDB_Items") + " where " + config.DblQuote("PhysicalName") + "=?" //OBJECTID=?"
+	sql := "SELECT " + config.DblQuote("Definition") + " FROM " + config.Collector.Schema + config.DblQuote("GDB_Items") + " where " + config.DblQuote("PhysicalName") + "=?" //OBJECTID=?"
 	log.Printf("Query: "+sql+"%v", tableName)
 
 	stmt, err := config.DbSqliteQuery.Prepare(sql)
