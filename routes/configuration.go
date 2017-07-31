@@ -33,7 +33,7 @@ func configuration(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + "config.json")
-		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"config.json")
+		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "config.json")
+		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"config.json")
 	}
 }

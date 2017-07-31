@@ -306,6 +306,7 @@ func Initialize() {
 	*/
 
 	LoadConfigurationFromFile()
+	Collector.DataPath = DataPath
 
 	//override any settings from config file
 	if len(Collector.HttpPort) == 1 {
@@ -326,22 +327,32 @@ func Initialize() {
 		Collector.Cert = Cert
 	}
 	var err error
+	Collector.Configuration, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = Collector.Configuration.Ping()
+	if err != nil {
+		log.Fatalf("Error on opening database connection: %s", err.Error())
+	}
+
 	if Collector.DefaultDataSource == structs.SQLITE3 {
 		Collector.Schema = ""
 		Collector.TableSuffix = "_evw"
 		Collector.UUID = "(select '{'||upper(substr(u,1,8)||'-'||substr(u,9,4)||'-4'||substr(u,13,3)||'-'||v||substr(u,17,3)||'-'||substr(u,21,12))||'}' from ( select lower(hex(randomblob(16))) as u, substr('89ab',abs(random()) % 4 + 1, 1) as v) as foo)"
 		Collector.DbTimeStamp = "(julianday('now') - 2440587.5)*86400.0*1000"
 
-		once.Do(initDB)
-
-		Collector.DatabaseDB, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = Collector.DatabaseDB.Ping()
-		if err != nil {
-			log.Fatalf("Error on opening database connection: %s", err.Error())
-		}
+		//once.Do(initDB)
+		/*
+			Collector.DatabaseDB, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = Collector.DatabaseDB.Ping()
+			if err != nil {
+				log.Fatalf("Error on opening database connection: %s", err.Error())
+			}
+		*/
 		//DbQueryName := DataPath + string(os.PathSeparator) + ServiceName + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + ServiceName + ".geodatabase"
 
 		//DbQuery, err = sql.Open("sqlite3", "file:"+DbQueryName+"?PRAGMA journal_mode=WAL")
@@ -568,6 +579,7 @@ func Initialize() {
 	log.Printf("HTTPS Port: %v\n", Collector.HttpsPort)
 	log.Printf("Cert: %v\n", Collector.Pem)
 	log.Printf("Pem: %v\n", Collector.Cert)
+	log.Printf("Sqlite configuration DB %v\n", Collector.SqliteDb)
 }
 
 func initDB() {

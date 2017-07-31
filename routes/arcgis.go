@@ -183,20 +183,20 @@ func services(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + "FeatureServer.json")
-		http.ServeFile(w, r, config.DataPath+"FeatureServer.json")
+		log.Println("Sending: " + config.Collector.DataPath + "FeatureServer.json")
+		http.ServeFile(w, r, config.Collector.DataPath+"FeatureServer.json")
 	}
 }
 
 func services_arcgis(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/services")
-	log.Println("Sending: " + config.DataPath + "FeatureServer.json")
+	log.Println("Sending: " + config.Collector.DataPath + "FeatureServer.json")
 	response := config.GetArcCatalog("FeatureServer", "", "")
 	if len(response) > 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		http.ServeFile(w, r, config.DataPath+"FeatureServer.json")
+		http.ServeFile(w, r, config.Collector.DataPath+"FeatureServer.json")
 	}
 }
 func featureServer(w http.ResponseWriter, r *http.Request) {
@@ -223,8 +223,8 @@ func featureServer(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer.json")
-		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer.json")
+		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer.json")
+		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer.json")
 	}
 }
 
@@ -237,8 +237,8 @@ func services_arcgis(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + "FeatureServer.json")
-		http.ServeFile(w, r, config.DataPath+"FeatureServer.json")
+		log.Println("Sending: " + config.Collector.DataPath + "FeatureServer.json")
+		http.ServeFile(w, r, config.Collector.DataPath+"FeatureServer.json")
 	}
 }
 */
@@ -281,8 +281,8 @@ func services_name(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "FeatureServer.json")
-		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"FeatureServer.json")
+		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "FeatureServer.json")
+		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"FeatureServer.json")
 	}
 }
 func rest_services_name(w http.ResponseWriter, r *http.Request) {
@@ -309,8 +309,8 @@ func rest_services_name(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer.json")
-		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer.json")
+		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer.json")
+		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer.json")
 	}
 }
 func id(w http.ResponseWriter, r *http.Request) {
@@ -340,8 +340,8 @@ func id(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	} else {
-		log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".json")
-		http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".json")
+		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".json")
+		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".json")
 	}
 }
 func uploads_upload(w http.ResponseWriter, r *http.Request) {
@@ -411,8 +411,8 @@ func uploads_upload(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		} else {
-			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer.json")
-			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer.json")
+			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer.json")
+			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer.json")
 		}
 	*/
 }
@@ -1067,8 +1067,8 @@ func query(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		} else {
-			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".objectids.json")
-			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".objectids.json")
+			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".objectids.json")
+			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".objectids.json")
 		}
 	} else if len(objectIds) > 0 {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/objectIds=" + objectIds)
@@ -1081,8 +1081,8 @@ func query(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		} else {
-			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
-			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
+			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
+			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
 
 		}
 		//if returnGeometry == "false" &&
@@ -1094,8 +1094,8 @@ func query(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		} else {
-			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".outfields.json")
-			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".outfields.json")
+			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".outfields.json")
+			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".outfields.json")
 		}
 	} else {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/else")
@@ -1105,12 +1105,12 @@ func query(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		} else {
-			log.Println("Sending: " + config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
-			http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
+			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
+			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
 		}
 	}
 
-	//http.ServeFile(w, r, config.DataPath + "/" + id  + "query.json")
+	//http.ServeFile(w, r, config.Collector.DataPath + "/" + id  + "query.json")
 
 }
 
@@ -1168,7 +1168,7 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 		var dJoinKey = config.Collector.Projects[name].Relationships[relationshipId].DJoinKey
 		var oJoinKey = config.Collector.Projects[name].Relationships[relationshipId].OJoinKey
 
-		jsonFile := fmt.Sprint(config.DataPath, string(os.PathSeparator), name+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", id, ".query.json")
+		jsonFile := fmt.Sprint(config.Collector.DataPath, string(os.PathSeparator), name+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", id, ".query.json")
 		log.Println(jsonFile)
 		file, err1 := ioutil.ReadFile(jsonFile)
 		if err1 != nil {
@@ -1201,7 +1201,7 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 		//oJoinVal = strings.ToLower(oJoinVal.(string))
 
 		//strconv.Itoa(int(dID.(float64)))
-		jsonFile = fmt.Sprint(config.DataPath, string(os.PathSeparator), name, string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", dID, ".query.json")
+		jsonFile = fmt.Sprint(config.Collector.DataPath, string(os.PathSeparator), name, string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", dID, ".query.json")
 		log.Println(jsonFile)
 		file, err1 = ioutil.ReadFile(jsonFile)
 		if err1 != nil {
@@ -1382,7 +1382,7 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 
 	//_, err = w.Write(fields)
 	//return
-	//var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	//var replicaDb = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	//var tableName = config.Collector.Projects[name].Relationships[relationshipId]["dTable"].(string)
 
 	//log.Println(tableName)
@@ -1556,7 +1556,7 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 	if config.Collector.DataSource == structs.FILE {
 
 		//get the fields json
-		jsonFile := config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
+		jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
 		log.Println(jsonFile)
 		file, err1 := ioutil.ReadFile(jsonFile)
 		if err1 != nil {
@@ -1714,12 +1714,12 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 		}
 	*/
 	/*
-		var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+		var replicaDb = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 		//var tableName = config.Services[name].Relationships[id]["dTable"].(string)
 		//log.Println(tableName)
 		//var layerId = int(config.Services[name].Relationships[id]["dId"].(float64))
 		//id = "1"
-		var jsonFile = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
+		var jsonFile = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
 			id + ".query.json"
 		file, err1 := ioutil.ReadFile(jsonFile)
 		if err1 != nil {
@@ -1749,7 +1749,7 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 		log.Println(string(b))
 	*/
 
-	//var replicaDb = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	//var replicaDb = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 
 	//var jsonFields=JSON.parse(file)
 	//log.Println("sqlite: " + replicaDb)
@@ -1765,7 +1765,7 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 	*/
 
 	/*
-		var jsonOutputFile = config.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
+		var jsonOutputFile = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." +
 			id + ".query.exported.json"
 
 		os.Remove(jsonOutputFile)

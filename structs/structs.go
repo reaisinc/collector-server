@@ -29,12 +29,13 @@ type Catalog struct {
 type Collector struct {
 	Configuration     *sql.DB
 	DatabaseDB        *sql.DB
+	DataSource        string `json:"dataSource"`
+	DataName          string `json:"dataName"`
+	DataPath          string `json:"dataPath"`
+	SqliteDb          string `json:"sqliteDb"`
 	Username          string `json:"username"`
 	Hostname          string `json:"hostname"`
 	PG                string `json:"pg"`
-	DataSource        string `json:"dataSource"`
-	DataName          string `json:"dataName"`
-	SqliteDb          string `json:"sqliteDb"`
 	Pem               string `json:"pemPath"`
 	Cert              string `json:"certPath"`
 	HttpPort          string `json:"httpPort"`

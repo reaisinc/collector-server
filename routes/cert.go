@@ -10,6 +10,6 @@ import (
 
 func cert(w http.ResponseWriter, r *http.Request) {
 	//res.sendFile("certs/server.crt", { root : __dirname})
-	log.Println("Sending: " + config.DataPath + "certs/server.crt")
-	http.ServeFile(w, r, config.DataPath+string(os.PathSeparator)+"certs"+string(os.PathSeparator)+"server.crt")
+	log.Println("Sending: " + config.Collector.DataPath + "certs/server.crt")
+	http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"certs"+string(os.PathSeparator)+"server.crt")
 }
