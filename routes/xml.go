@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -31,9 +30,9 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 	tableName = strings.ToUpper(tableName)
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/xml/" + id)
-	var dbName = config.Collector.Projects[name].ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	var dbName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	if len(dbPath) > 0 {
-		if config.Collector.DataSource != structs.PGSQL {
+		if config.Collector.DefaultDataSource != structs.PGSQL {
 			if config.DbSqliteDbName != dbPath {
 				if config.DbSqliteQuery != nil {
 					config.DbSqliteQuery.Close()
@@ -55,8 +54,8 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	//if err != nil {
-	if config.Collector.DataSource == structs.PGSQL {
-		config.DbSqliteQuery = config.Collector.Projects[name].ReplicaDB
+	if config.Collector.DefaultDataSource == structs.PGSQL {
+		config.DbSqliteQuery = config.GetReplicaDB(name)
 	} else {
 		if config.DbSqliteQuery == nil {
 			//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")

@@ -29,7 +29,9 @@ type Catalog struct {
 type Collector struct {
 	Configuration     *sql.DB
 	DatabaseDB        *sql.DB
-	DataSource        string `json:"dataSource"`
+	DefaultProject    string `json:"defaultProject"`
+	DefaultDataSource string `json:"defaultDatabase"`
+	//DataSource        string `json:"dataSource"`
 	DataName          string `json:"dataName"`
 	DataPath          string `json:"dataPath"`
 	SqliteDb          string `json:"sqliteDb"`
@@ -40,15 +42,13 @@ type Collector struct {
 	Cert              string `json:"certPath"`
 	HttpPort          string `json:"httpPort"`
 	HttpsPort         string `json:"httpsPort"`
-	DefaultProject    string `json:"defaultProject"`
-	DefaultDataSource string `json:"defaultDataSource"`
 	Schema            string `json:"schema,omitempty"`
 	UUID              string
 	DbTimeStamp       string
 	TableSuffix       string
-
-	Projects map[string]Project `json:"projects"`
-	IsLoaded bool
+	Projects          map[string]*Project `json:"projects"`
+	IsLoaded          bool
+	//ReplicaDB         map[string]*sql.DB
 	//Services
 	//Services map[string]map[string]Service
 	//map[string]Service
@@ -60,12 +60,12 @@ type Project struct {
 	MXD         string `json:"mxd"`
 	DataPath    string `json:"dataPath"`
 	ReplicaPath string `json:"replica"`
+	ReplicaDB   *sql.DB
 	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
 	//Layers        map[string]map[string]interface{} `json:"layers"`
 	//Relationships map[string]map[string]interface{} `json:"relationships"`
 	Layers        map[string]Layer        `json:"layers"`
 	Relationships map[string]Relationship `json:"relationships"`
-	ReplicaDB     *sql.DB
 }
 
 type Layer struct {
@@ -88,6 +88,7 @@ type Relationship struct {
 	DJoinKey string `json:"dJoinKey"`
 	DTable   string `json:"dTable"`
 }
+
 type EditFieldInfo struct {
 	CreatorField      string `json:"creatorField"`
 	EditDateField     string `json:"editDateField"`

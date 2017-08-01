@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -327,13 +328,16 @@ func Initialize() {
 		Collector.Cert = Cert
 	}
 	var err error
-	Collector.Configuration, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = Collector.Configuration.Ping()
-	if err != nil {
-		log.Fatalf("Error on opening database connection: %s", err.Error())
+	if Collector.DefaultDataSource != structs.FILE {
+		//connect to configuration sqlite database
+		Collector.Configuration, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = Collector.Configuration.Ping()
+		if err != nil {
+			log.Fatalf("Error on opening database connection: %s", err.Error())
+		}
 	}
 
 	if Collector.DefaultDataSource == structs.SQLITE3 {
@@ -378,11 +382,8 @@ func Initialize() {
 		Collector.UUID = "('{'||md5(random()::text || clock_timestamp()::text)::uuid||'}')"
 		//DbTimeStamp = "(CAST (to_char(now(), 'J') AS INT) - 2440587.5)*86400.0*1000"
 		Collector.DbTimeStamp = "(now())"
-
-		log.Print("Postgresql database: " + Collector.PG)
 		log.Print("Pinging Postgresql: ")
 		log.Println(Collector.DatabaseDB.Ping)
-
 	}
 
 	/*
@@ -575,11 +576,64 @@ func Initialize() {
 		log.Println("Data name" + DbName)
 	*/
 
+	//print out summary
+	PrintServerSummary()
+}
+func PrintServerSummary() {
 	log.Printf("HTTP Port: %v\n", Collector.HttpPort)
 	log.Printf("HTTPS Port: %v\n", Collector.HttpsPort)
 	log.Printf("Cert: %v\n", Collector.Pem)
 	log.Printf("Pem: %v\n", Collector.Cert)
 	log.Printf("Sqlite configuration DB %v\n", Collector.SqliteDb)
+	if Collector.DefaultDataSource == structs.PGSQL {
+		log.Println("Postgresql database: " + Collector.PG)
+
+	} else if Collector.DefaultDataSource == structs.SQLITE3 {
+
+	} else if Collector.DefaultDataSource == structs.FILE {
+	}
+	for key, val := range Collector.Projects {
+		log.Printf("%v %v\n", key, val.Name)
+		log.Printf("%v %v\n", key, val.DataPath)
+		log.Printf("%v %v\n", key, val.FGDB)
+		log.Printf("%v %v\n", key, val.ReplicaPath)
+
+	}
+}
+
+func PrintServerSummaryTable(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
+	//w.Write([]byte("Welcome"))
+	w.Header().Set("Content-Type", "application/json")
+	/*
+		var info = map[string]interface{}{} //{"server": server, "projects": projects}
+
+		info["HTTP Port"] = Collector.HttpPort
+		info["HTTPS Port"] = Collector.HttpsPort
+		info["Cert"] = Collector.Pem
+		info["Pem"] = Collector.Cert
+		info["Sqlite configuration DB"] = Collector.SqliteDb
+		if Collector.DefaultDataSource == structs.PGSQL {
+			info["Postgresql database"] = Collector.PG
+		} else if Collector.DefaultDataSource == structs.SQLITE3 {
+
+		} else if Collector.DefaultDataSource == structs.FILE {
+		}
+		var projects = map[string]map[string]interface{}{}
+		//info["projects"] = projects
+		//var projects map[string]interface{} //{"itemID": "1", "itemName": fileName, "description": "description", "date": time.Now().Local().Unix() * 1000, "committed": true}
+		for _, val := range Collector.Projects {
+			projects[val.Name] = map[string]interface{}{}
+			projects[val.Name]["name"] = val.Name
+			projects[val.Name]["datapath"] = val.DataPath
+			projects[val.Name]["fgdb"] = val.FGDB
+			projects[val.Name]["replicaPath"] = val.ReplicaPath
+		}
+		info["projects"] = projects
+	*/
+	//item, _ := json.Marshal(map[string]interface{}{"itemID": "1", "itemName": fileName, "description": "description", "date": time.Now().Local().Unix() * 1000, "committed": true})
+	response, _ := json.Marshal(Collector)
+	w.Write(response)
 }
 
 func initDB() {
@@ -702,10 +756,49 @@ func GetDataBase(project structs.Project) *sql.DB {
 	return nil
 }
 
+func GetReplicaDB(name string) *sql.DB {
+	if Collector.Projects[name].ReplicaDB == nil {
+		var err error
+		//var db *sql.DB
+		//Collector.Projects[name].ReplicaDB = make(sql.DB)
+		//var p structs.Project = Collector.Projects[name]
+		//Collector.Projects[name].ReplicaDB = new(sql.DB)
+		Collector.Projects[name].ReplicaDB, err = sql.Open("sqlite3", Collector.Projects[name].ReplicaPath+SqlFlags)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = Collector.Projects[name].ReplicaDB.Ping()
+		if err != nil {
+			log.Fatalf("Error on opening database connection: %s", err.Error())
+		}
+		//Collector.Projects[name].ReplicaDB = p.ReplicaDB
+	}
+	return Collector.Projects[name].ReplicaDB
+}
+
+/*
+func GetReplicaDB(name string) *sql.DB {
+	if Collector.ReplicaDB[name] == nil {
+		var err error
+		//var db *sql.DB
+		//Collector.Projects[name].ReplicaDB = make(sql.DB)
+		Collector.ReplicaDB[name], err = sql.Open("sqlite3", Collector.Projects[name].ReplicaPath+SqlFlags)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = Collector.ReplicaDB[name].Ping()
+		if err != nil {
+			log.Fatalf("Error on opening database connection: %s", err.Error())
+		}
+
+	}
+	return Collector.ReplicaDB[name]
+}
+*/
 //GetArcService queries the database for service layer entries
 func GetArcService(catalog string, service string, layerid int, dtype string, dbPath string) []byte {
 
-	if Collector.DataSource == structs.FILE {
+	if Collector.DefaultDataSource == structs.FILE {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -729,7 +822,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 		}
 		return file
 	}
-	sql := "select json from services where service like " + GetParam(Collector.DataSource, 1) + " and name=" + GetParam(Collector.DataSource, 2) + " and layerid=" + GetParam(Collector.DataSource, 3) + " and type=" + GetParam(Collector.DataSource, 4)
+	sql := "select json from services where service like " + GetParam(Collector.DefaultDataSource, 1) + " and name=" + GetParam(Collector.DefaultDataSource, 2) + " and layerid=" + GetParam(Collector.DefaultDataSource, 3) + " and type=" + GetParam(Collector.DefaultDataSource, 4)
 	log.Printf("Query: select json from services where service like '%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 	//Db := GetDataBase(Collector.Projects[catalog])
 	stmt, err := Collector.Configuration.Prepare(sql)
@@ -747,7 +840,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 
 //GetArcCatalog queries the database for top level catalog entries
 func GetArcCatalog(service string, dtype string, dbPath string) []byte {
-	if Collector.DataSource == structs.FILE || service == "config" {
+	if Collector.DefaultDataSource == structs.FILE || service == "config" {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -765,7 +858,7 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 		return file
 
 	}
-	sql := "select json from catalog where name=" + GetParam(Collector.DataSource, 1) + " and type=" + GetParam(Collector.DataSource, 2)
+	sql := "select json from catalog where name=" + GetParam(Collector.DefaultDataSource, 1) + " and type=" + GetParam(Collector.DefaultDataSource, 2)
 	log.Printf("Query: select json from catalog where name='%v' and type='%v'", service, dtype)
 	//Db := GetDataBase(Collector.Projects[catalog])
 
@@ -785,7 +878,7 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 }
 
 func SetArcService(json []byte, catalog string, service string, layerid int, dtype string, dbPath string) bool {
-	if Collector.DataSource == structs.FILE {
+	if Collector.DefaultDataSource == structs.FILE {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -810,7 +903,7 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 		return true
 	}
 	//Db := GetDataBase(Collector.Projects[catalog])
-	sql := "update services set json=" + GetParam(Collector.DataSource, 1) + " where service like " + GetParam(Collector.DataSource, 2) + " and name=" + GetParam(Collector.DataSource, 3) + " and layerid=" + GetParam(Collector.DataSource, 4) + " and type=" + GetParam(Collector.DataSource, 5)
+	sql := "update services set json=" + GetParam(Collector.DefaultDataSource, 1) + " where service like " + GetParam(Collector.DefaultDataSource, 2) + " and name=" + GetParam(Collector.DefaultDataSource, 3) + " and layerid=" + GetParam(Collector.DefaultDataSource, 4) + " and type=" + GetParam(Collector.DefaultDataSource, 5)
 	log.Printf("Query: update services set json=<json> where service like '%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 	stmt, err := Collector.Configuration.Prepare(sql)
 	if err != nil {
@@ -828,7 +921,7 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 
 //GetArcCatalog queries the database for top level catalog entries
 func SetArcCatalog(json []byte, service string, dtype string, dbPath string) bool {
-	if Collector.DataSource == structs.FILE || service == "config" {
+	if Collector.DefaultDataSource == structs.FILE || service == "config" {
 		if len(service) > 0 {
 			service += "."
 		}
@@ -873,7 +966,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 		objectIdsFloat = append(objectIdsFloat, j)
 	}
 
-	if Collector.DataSource == structs.FILE {
+	if Collector.DefaultDataSource == structs.FILE {
 		//config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json"
 
 		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), catalog+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", layerid, ".query.json")
@@ -905,7 +998,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 			log.Println(err)
 		}
 		return jsonstr
-	} else if Collector.DataSource == structs.PGSQL {
+	} else if Collector.DefaultDataSource == structs.PGSQL {
 		sql := "select json from " + Collector.Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
 		log.Printf("select json from "+Collector.Schema+"services where service='%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 		//Db := GetDataBase(Collector.Projects[catalog])
@@ -943,7 +1036,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 			log.Println(err)
 		}
 		return fields
-	} else if Collector.DataSource == structs.SQLITE3 {
+	} else if Collector.DefaultDataSource == structs.SQLITE3 {
 		sql := "select json from services where service=? and name=? and layerid=? and type=?"
 		log.Printf("select json from services where service='%v' and name='%v' and layerid=%v and type='%v'", catalog, service, layerid, dtype)
 		//Db := GetDataBase(Collector.Projects[catalog])

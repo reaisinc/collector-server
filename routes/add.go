@@ -33,7 +33,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 	sql := "select \"base_id\"," + config.Collector.UUID + " from " + config.Collector.Schema + "\"GDB_RowidGenerators\" where \"registration_id\" in ( SELECT \"registration_id\" FROM " + config.Collector.Schema + "\"GDB_TableRegistry\" where \"table_name\"='" + parentTableName + "')"
 	//sql := "select max(" + parentObjectID + ")+1," + config.Collector.UUID + " from " + tableName
 	log.Println(sql)
-	rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql)
+	rows, err := config.GetReplicaDB(name).Query(sql)
 	//defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&objectid, &uuidstr)
@@ -46,7 +46,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 	rows.Close()
 	sql = "update " + config.Collector.Schema + "\"GDB_RowidGenerators\" set \"base_id\"=" + (strconv.Itoa(objectid + 1)) + " where \"registration_id\" in ( SELECT \"registration_id\" FROM " + config.Collector.Schema + "\"GDB_TableRegistry\" where \"table_name\"='" + parentTableName + "')"
 	log.Println(sql)
-	_, err = config.Collector.Projects[name].ReplicaDB.Exec(sql)
+	_, err = config.GetReplicaDB(name).Exec(sql)
 	if err != nil {
 		log.Println(err.Error())
 		//w.Write([]byte(err.Error()))
@@ -65,13 +65,13 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			if key == parentObjectID {
 				i.Attributes[parentObjectID] = objectid
 				cols += sep + config.DblQuote(key)
-				p += sep + config.GetParam(config.Collector.DataSource, c)
+				p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 				sep = ","
 				vals = append(vals, objectid)
 				c++
 			} else {
 				cols += sep + config.DblQuote(key)
-				p += sep + config.GetParam(config.Collector.DataSource, c)
+				p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 				sep = ","
 				if key == joinField {
 					j = strings.ToUpper(j.(string))
@@ -100,7 +100,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		}
 		if len(globalIdName) > 0 {
 			cols += sep + config.DblQuote(globalIdName)
-			p += sep + config.GetParam(config.Collector.DataSource, c)
+			p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 			vals = append(vals, uuidstr)
 			i.Attributes[globalIdName] = uuidstr
 			c++
@@ -119,24 +119,28 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 
 			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 			vals = append(vals, config.Collector.Username)
-			p += sep + config.GetParam(config.Collector.DataSource, c)
+			p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 			i.Attributes["creatorField"] = config.Collector.Username
 			c++
+
 			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 			vals = append(vals, config.Collector.Username)
-			p += sep + config.GetParam(config.Collector.DataSource, c)
+			p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 			i.Attributes["editorField"] = config.Collector.Username
 			c++
 
-			p += sep + config.DbTimeStamp                                  //julianday('now')"
+			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreationDateField)
+			p += sep + config.Collector.DbTimeStamp                        //julianday('now')"
 			i.Attributes["creationDateField"] = current_time.Unix() * 1000 //DateToNumber(current_time.Year(), current_time.Month(), current_time.Day())
-			p += sep + config.DbTimeStamp                                  //julianday('now')"
-			i.Attributes["editDateField"] = current_time.Unix() * 1000     //DateToNumber(current_time.Year(), current_time.Month(), current_time.Day())
+
+			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditDateField)
+			p += sep + config.Collector.DbTimeStamp                    //julianday('now')"
+			i.Attributes["editDateField"] = current_time.Unix() * 1000 //DateToNumber(current_time.Year(), current_time.Month(), current_time.Day())
 
 			/*
 				if key == "creatorField" || key == "editorField" {
 					vals = append(vals, config.Collector.Username)
-					p += sep + config.GetParam(config.Collector.DataSource, c)
+					p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 					i.Attributes[key] = config.Collector.Username
 					c++
 				} else if key == "creationDateField" || key == "editDateField" {
@@ -175,16 +179,16 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 
 		sql := "insert into " + config.Collector.Schema + tableName + "(" + cols + ") values(" + p + ")"
 		/*
-			stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+			stmt, err := config.GetReplicaDB(name).Prepare(sql)
 			if err != nil {
 				log.Println(err.Error())
 			}
 		*/
-		res, err := config.Collector.Projects[name].ReplicaDB.Exec(sql, vals...)
+		res, err := config.GetReplicaDB(name).Exec(sql, vals...)
 		if err != nil {
 			log.Println(err.Error())
 		} else {
-			if config.Collector.DataSource == structs.SQLITE3 {
+			if config.Collector.DefaultDataSource == structs.SQLITE3 {
 				objectid, err := res.LastInsertId()
 				if err != nil {
 					println("Error:", err.Error())
@@ -195,7 +199,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		}
 		//stmt.Close()
 
-		if config.Collector.DataSource == structs.PGSQL {
+		if config.Collector.DefaultDataSource == structs.PGSQL {
 			//addsTxt = addsTxt[15 : len(addsTxt)-2]
 			sql = "update " + config.Collector.Schema + "services set json=jsonb_set(json,'{features}',json->'features' || $1::jsonb,true) where type='query' and layerId=$2"
 			log.Println(sql)
@@ -216,13 +220,13 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 				log.Println(err.Error())
 			}
 			stmt.Close()
-		} else if config.Collector.DataSource == structs.SQLITE3 {
+		} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
 			sql := "select json from " + config.Collector.Schema + "services where type='query' and layerId=?"
-			stmt, err := config.Collector.DatabaseDB.Prepare(sql)
+			stmt, err := config.Collector.Configuration.Prepare(sql)
 			if err != nil {
 				log.Println(err.Error())
 			}
-			rows, err := config.Collector.DatabaseDB.Query(sql, id, objectid)
+			rows, err := config.Collector.Configuration.Query(sql, id, objectid)
 
 			var row []byte
 			for rows.Next() {
@@ -248,7 +252,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 				log.Println(err)
 			}
 
-			tx, err := config.Collector.DatabaseDB.Begin()
+			tx, err := config.Collector.Configuration.Begin()
 			if err != nil {
 				log.Fatal(err)
 			}

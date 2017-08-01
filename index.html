@@ -45,6 +45,17 @@
                 function (data) {
                     //console.log(data);
                     //get list of folders
+                    var projects = document.getElementById("projects")
+                    for (i = projects.options.length - 1; i >= 0; i--) {
+                        projects.remove(i);
+                    }
+                    for (var i in data.folders) {
+                        var option;
+                        option = document.createElement('option');
+                        option.setAttribute('value', data.folders[i]);
+                        option.appendChild(document.createTextNode(data.folders[i]));
+                        projects.appendChild(option);
+                    }
                     var service = data.folders[0]
                     document.getElementById("serviceUrl").value = serviceUrl + "/" + service
                     loadServices()
@@ -149,6 +160,7 @@
             }
             var langArray = [
                 { "value": "", "text": "" },
+                { "value": url + "/info", "text": "Live Server Configuration" },
                 { "value": url + "/config", "text": "Configuration" },
                 //{ "value": url+"sharing/rest/accounts/self", "text": "Accounts self" },
                 { "value": url + "/sharing/rest/portals/self?f=json", "text": "Portals self" },
@@ -260,7 +272,7 @@
                 //langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.layers[i].id + "?f=json", "text": data.layers[i].name + " (" + data.layers[i].id + ")" })
                 //langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.layers[i].id + "/query?returnGeometry=false&outFields=OBJECTID&f=json", "text": data.layers[i].name + " ObjectID (" + data.layers[i].id + ")" })
                 //langArray.push({ "value": url + "/arcgis/rest/services/" + service + "/FeatureServer/" + data.layers[i].id + "/query?f=json", "text": data.layers[i].name + " Query (" + data.layers[i].id + ")" })
-                langArray.push({ "value": url + "/" + data[i][0] + "/" + data[i][1] + "/" + data[i][2] + "/" + data[i][3] + "/" + (data[i][4] ? data[i][4] : "%20") + "?db=" + db, "text": data[i][1] + "/" + data[i][4] + (data[i][6]?" (" + data[i][6] + ")":"") })
+                langArray.push({ "value": url + "/" + data[i][0] + "/" + data[i][1] + "/" + data[i][2] + "/" + data[i][3] + "/" + (data[i][4] ? data[i][4] : "%20") + "?db=" + db, "text": data[i][1] + "/" + data[i][4] + (data[i][6] ? " (" + data[i][6] + ")" : "") })
                 if (data[i][1] == "GDB_ServiceItems" && data[i][5] != "0") {
                     langArray.push({ "value": url + "/table/" + data[i][1] + "/" + data[i][2] + "/" + data[i][3] + "/" + (data[i][4] ? data[i][4] : "%20") + "?db=" + db, "text": data[i][1] + "/" + data[i][4] + " (table)" })
                 }
@@ -285,6 +297,28 @@
                 option.appendChild(document.createTextNode(langArray[i].text));
                 select.appendChild(option);
             }
+        }
+        function updateProject(sel) {
+            if (sel.value == "") {
+                document.getElementById("url").value = "";
+                editor.set({});
+                return
+            }
+            var service = val = sel.value
+            var serviceUrl = location.href + (location.href.substring(location.href.length - 1) == '/' ? "" : "/") + "arcgis/rest/services"
+            //showSpinner()
+            //loadJSON(serviceUrl,
+            //function (data) {
+            document.getElementById("url").value = ""
+            document.getElementById("serviceUrl").value = serviceUrl + "/" + service
+            loadServices()
+            //},
+            //function (xhr) {
+            //    console.error(xhr);
+            //    showError("Service URL not found")
+            //    hideSpinner()
+            //}
+            //)
         }
 
         function updateURL(sel) {
@@ -855,7 +889,12 @@
             icon.innerHTML = '<a title="Open a JSON/XML file" class="btn btn-pad" data-toggle="modal" data-target="#loadfile" aria-label="Left Align"><i class="fa fa-file-text fa-2x" aria-hidden="true"></i></a>'
 
             icon = tr[0].insertCell(0);
-            icon.innerHTML = '<form class="form-inline" style="padding-right:30px;" id="urlfrm"><span id="urlLbl"></span> <span style="color:white">Source</span> <select class="form-control" style="height:30px" id="urls" onchange="updateURL(this)"></select></form>';
+            icon.innerHTML = '<form class="form-inline" style="padding-right:30px;" id="urlfrm">' +
+                '<span id="projectLbl"></span> <span style="color:white">Project</span> <select class="form-control" style="height:30px" id="projects" onchange="updateProject(this)"></select></span>&nbsp;&nbsp;' +
+                '<span id="urlLbl"></span> <span style="color:white">Source</span> <select class="form-control" style="height:30px" id="urls" onchange="updateURL(this)"></select></form>';
+
+            //icon = tr[0].insertCell(0);
+            //icon.innerHTML = '<form class="form-inline" style="padding-right:30px;" id="projectfrm"><span id="projectLbl"></span> <span style="color:white">Project</span> <select class="form-control" style="height:30px" id="projecturls" onchange="updateProject(this)"></select></form>';
 
             document.getElementById('textFile').addEventListener('change', function (e) {
                 $("[data-dismiss=modal]").trigger({ type: "click" });
@@ -916,6 +955,7 @@
                 //document.getElementById("url").value="";
                 return;
             }
+
             var txt
             //is it XML or JSON
             if (document.getElementById("xmleditor").style.display == "block") {

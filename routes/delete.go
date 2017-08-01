@@ -19,10 +19,10 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 	result["globalId"] = nil
 	results = append(results, result)
 	//delete from table
-	log.Println("delete from " + config.Collector.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.DataSource, 1) + ")")
+	log.Println("delete from " + config.Collector.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")")
 	log.Println("delete objectids:  " + deletesTxt + "/" + strconv.Itoa(objectid))
-	var sql = "delete from " + config.Collector.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.DataSource, 1) + ")"
-	stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+	var sql = "delete from " + config.Collector.Schema + tableName + " where " + config.DblQuote(parentObjectID) + " in (" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
+	stmt, err := config.GetReplicaDB(name).Prepare(sql)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -33,7 +33,7 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 	}
 	stmt.Close()
 
-	if config.Collector.DataSource == structs.PGSQL {
+	if config.Collector.DefaultDataSource == structs.PGSQL {
 		sql := "select pos-1  from " + config.Collector.Schema + "services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=$1 and elem->'attributes'->>'OBJECTID'=$2"
 
 		log.Println(sql)
@@ -64,7 +64,7 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 		}
 		stmt.Close()
 
-	} else if config.Collector.DataSource == structs.SQLITE3 {
+	} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
 		sql := "select json from services where type='query' and layerId=?"
 		stmt, err := config.Collector.DatabaseDB.Prepare(sql)
 		if err != nil {

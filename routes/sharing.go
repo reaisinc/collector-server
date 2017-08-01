@@ -251,10 +251,11 @@ func sharing_content_items(w http.ResponseWriter, r *http.Request) {
 func sharing_content_items_data(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
-	if config.Collector.DataSource != structs.FILE {
-		name = "%"
-
-	}
+	/*
+		if config.Collector.DefaultDataSource != structs.FILE {
+			name = "%"
+		}
+	*/
 	//log.Println("Old name:  " + name)
 	//name = config.ServiceName
 	//log.Println("New name:  " + name)
@@ -459,7 +460,7 @@ func sharing_content_items_info_thumbnail(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	id := vars["id"]
 	//name := id
-	//if config.Collector.DataSource != structs.FILE {
+	//if config.Collector.DefaultDataSource != structs.FILE {
 	//	id = "%"
 	//}
 	//log.Println("Old name:  " + id)
@@ -480,7 +481,7 @@ func sharing_content_items_info_thumbnail_v1(w http.ResponseWriter, r *http.Requ
 	vars := mux.Vars(r)
 	id := vars["id"]
 	//name := id
-	if config.Collector.DataSource != structs.FILE {
+	if config.Collector.DefaultDataSource != structs.FILE {
 		id = "%"
 	}
 	//log.Println("Old name:  " + id)

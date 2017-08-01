@@ -1,12 +1,10 @@
 package routes
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -88,40 +86,46 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 		fieldStr = config.DblQuote("ItemInfo")
 	}
 	dbPath := r.URL.Query().Get("db")
+	if len(dbPath) > 0 {
+	}
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/db/" + id)
 
-	var dbName = config.Collector.Projects[name].ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	var dbName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	//var parentObjectID = config.Collector.Projects[name].Layers[id]["oidname"].(string)
-	if len(dbPath) > 0 {
-		if config.DbSqliteDbName != dbPath {
-			if config.DbSqliteQuery != nil {
-				config.DbSqliteQuery.Close()
+	/*
+		if len(dbPath) > 0 {
+			if config.DbSqliteDbName != dbPath {
+				if config.DbSqliteQuery != nil {
+					config.DbSqliteQuery.Close()
+				}
+				config.DbSqliteQuery = nil
 			}
-			config.DbSqliteQuery = nil
-		}
-		config.DbSqliteDbName = dbPath
-		dbName = "file:" + dbPath + config.SqlWalFlags //"?PRAGMA journal_mode=WAL"
-	} else {
-		if config.DbSqliteDbName != dbName {
-			if config.DbSqliteQuery != nil {
-				config.DbSqliteQuery.Close()
+			config.DbSqliteDbName = dbPath
+			dbName = "file:" + dbPath + config.SqlWalFlags //"?PRAGMA journal_mode=WAL"
+		} else {
+			if config.DbSqliteDbName != dbName {
+				if config.DbSqliteQuery != nil {
+					config.DbSqliteQuery.Close()
+				}
+				config.DbSqliteQuery = nil
 			}
-			config.DbSqliteQuery = nil
+			config.DbSqliteDbName = dbName
 		}
-		config.DbSqliteDbName = dbName
-	}
+	*/
 	//err := config.DbSqliteQuery.Ping()
 
 	var err error
 	//if err != nil {
-	if config.DbSqliteQuery == nil {
-		//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
-		config.DbSqliteQuery, err = sql.Open("sqlite3", dbName)
-		if err != nil {
-			log.Fatal(err)
+	/*
+		if config.DbSqliteQuery == nil {
+			//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
+			config.DbSqliteQuery, err = sql.Open("sqlite3", dbName)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
-	}
+	*/
 	if r.Method == "PUT" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -135,7 +139,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 		log.Println(sql)
 		//log.Println(body)
 		log.Println(id)
-		stmt, err := config.DbSqliteQuery.Prepare(sql)
+		stmt, err := config.GetReplicaDB(name).Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 			w.Header().Set("Content-Type", "application/json")
@@ -164,7 +168,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 	sql := "SELECT " + fieldStr + " FROM " + config.Collector.Schema + config.DblQuote("GDB_ServiceItems") + " where " + config.DblQuote("OBJECTID") + "=?"
 	log.Printf("Query: "+sql+"%v", idInt)
 
-	stmt, err := config.DbSqliteQuery.Prepare(sql)
+	stmt, err := config.GetReplicaDB(name).Prepare(sql)
 	if err != nil {
 		log.Println(err.Error())
 		//w.Write([]byte(err.Error()))

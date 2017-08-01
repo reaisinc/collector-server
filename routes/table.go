@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
-	structs "github.com/traderboy/collector-server/structs"
 	config "github.com/traderboy/collector-server/config"
+	structs "github.com/traderboy/collector-server/structs"
 )
 
 func table_id(w http.ResponseWriter, r *http.Request) {
@@ -29,9 +28,9 @@ func table_id(w http.ResponseWriter, r *http.Request) {
 	dbPath := r.URL.Query().Get("db")
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/table/" + id)
-	var dbName = "file:" + config.Collector.Projects[name].ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase" + config.SqlWalFlags
+	var dbName = "file:" + config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase" + config.SqlWalFlags
 	if len(dbPath) > 0 {
-		if config.Collector.DataSource != structs.PGSQL {
+		if config.Collector.DefaultDataSource != structs.PGSQL {
 			if config.DbSqliteDbName != dbPath {
 				if config.DbSqliteQuery != nil {
 					config.DbSqliteQuery.Close()
@@ -64,8 +63,8 @@ func table_id(w http.ResponseWriter, r *http.Request) {
 	//if err != nil {
 	if config.DbSqliteQuery == nil {
 		//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
-		if config.Collector.DataSource == structs.PGSQL {
-			config.DbSqliteQuery = config.Collector.Projects[name].ReplicaDB
+		if config.Collector.DefaultDataSource == structs.PGSQL {
+			config.DbSqliteQuery = config.GetReplicaDB(name)
 		} else {
 			config.DbSqliteQuery, err = sql.Open("sqlite3", dbName)
 			if err != nil {

@@ -22,7 +22,7 @@ func configuration(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		response, _ := json.Marshal(map[string]interface{}{"response": ret})
 		w.Write(response)
-		
+
 		log.Println("Reloading configuration")
 		config.Initialize()
 		return
@@ -36,4 +36,9 @@ func configuration(w http.ResponseWriter, r *http.Request) {
 		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "config.json")
 		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"config.json")
 	}
+}
+
+func info(w http.ResponseWriter, r *http.Request) {
+	log.Println("/info (" + r.Method + ")")
+	config.PrintServerSummaryTable(w)
 }

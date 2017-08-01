@@ -63,7 +63,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 				if j == nil {
 					cols += sep + config.DblQuote(key) + "=null"
 				} else {
-					cols += sep + config.DblQuote(key) + "=" + config.GetParam(config.Collector.DataSource, c)
+					cols += sep + config.DblQuote(key) + "=" + config.GetParam(config.Collector.DefaultDataSource, c)
 					vals = append(vals, j)
 					c++
 				}
@@ -81,21 +81,26 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 			current_time := time.Now().Local()
 			//if rec, ok := config.Collector.Projects[name].Layers[id].EditFieldsInfo.(map[string]interface{}); ok {
 			//if rec, ok := config.Collector.Projects[name].Layers[id].EditFieldsInfo.(map[string]interface{}); ok {
-			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+			//cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+			//vals = append(vals, config.Collector.Username)
+			//p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
+			//i.Attributes["creatorField"] = config.Collector.Username
+			//c++
+			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField) + "=" + config.GetParam(config.Collector.DefaultDataSource, c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 			vals = append(vals, config.Collector.Username)
-			//p += sep + config.GetParam(config.Collector.DataSource, c)
-			i.Attributes["creatorField"] = config.Collector.Username
-			c++
-			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
-			vals = append(vals, config.Collector.Username)
-			//p += sep + config.GetParam(config.Collector.DataSource, c)
+			//p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
 			i.Attributes["editorField"] = config.Collector.Username
+			updates[num].Attributes["editorField"] = config.Collector.Username
 			c++
 
 			//p += sep + config.DbTimeStamp                                  //julianday('now')"
-			i.Attributes["creationDateField"] = current_time.Unix() * 1000 //DateToNumber(current_time.Year(), current_time.Month(), current_time.Day())
+			//i.Attributes["creationDateField"] = current_time.Unix() * 1000 //DateToNumber(current_time.Year(), current_time.Month(), current_time.Day())
 			//p += sep + config.DbTimeStamp                                  //julianday('now')"
+			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditDateField) + "=" + config.GetParam(config.Collector.DefaultDataSource, c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+			vals = append(vals, current_time.Unix()*1000)
 			i.Attributes["editDateField"] = current_time.Unix() * 1000 //DateToNumber(current_time.Year(), current_time.Month(), current_time.Day())
+			updates[num].Attributes["editDateField"] = i.Attributes["editDateField"]
+			c++
 
 			/*
 				for key, j := range rec {
@@ -104,7 +109,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 							continue
 						}
 						vals = append(vals, config.Collector.Username)
-						cols += sep + config.DblQuote(j.(string)) + "=" + config.GetParam(config.Collector.DataSource, c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+						cols += sep + config.DblQuote(j.(string)) + "=" + config.GetParam(config.Collector.DefaultDataSource, c) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 						i.Attributes[key] = config.Collector.Username
 						updates[num].Attributes[key] = config.Collector.Username
 						c++
@@ -136,17 +141,17 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		vals = append(vals, objectid)
 		//tableName = strings.Replace(tableName, "_evw", "", -1)
 
-		log.Println("update " + config.Collector.Schema + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DataSource, len(vals)))
+		log.Println("update " + config.Collector.Schema + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DefaultDataSource, len(vals)))
 		log.Print(vals)
 		//log.Print(objId)
 		var sql string
-		if config.Collector.DataSource == structs.PGSQL {
-			sql = "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DataSource, len(vals))
-		} else if config.Collector.DataSource == structs.SQLITE3 {
+		if config.Collector.DefaultDataSource == structs.PGSQL {
+			sql = "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DefaultDataSource, len(vals))
+		} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
 			sql = "update " + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=?"
 		}
 
-		stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+		stmt, err := config.GetReplicaDB(name).Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -171,7 +176,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		//sql = "update services set json=jsonb_set(json, array('features',elem_index::text, ,false) from (select pos - 1 as elem_index from services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=0 and elem->'attributes'->>'OBJECTID'='$2')"
 
 		updateTxt = updateTxt[15 : len(updateTxt)-2]
-		if config.Collector.DataSource == structs.PGSQL {
+		if config.Collector.DefaultDataSource == structs.PGSQL {
 			sql = "select pos-1  from " + config.Collector.Schema + "services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=$1 and elem->'attributes'->>'OBJECTID'=$2"
 
 			log.Println(sql)
@@ -203,13 +208,13 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 			}
 			stmt.Close()
 
-		} else if config.Collector.DataSource == structs.SQLITE3 {
+		} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
 			sql = "select json from services where type='query' and layerId=?"
-			stmt, err = config.Collector.DatabaseDB.Prepare(sql)
+			stmt, err = config.Collector.Configuration.Prepare(sql)
 			if err != nil {
 				log.Println(err.Error())
 			}
-			rows, err := config.Collector.DatabaseDB.Query(sql, id, objectid)
+			rows, err := config.Collector.Configuration.Query(sql, id, objectid)
 
 			var row []byte
 			for rows.Next() {
@@ -243,7 +248,7 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 				log.Println(err)
 			}
 			//log.Println(string(jsonstr))
-			tx, err := config.Collector.DatabaseDB.Begin()
+			tx, err := config.Collector.Configuration.Begin()
 			if err != nil {
 				log.Fatal(err)
 			}

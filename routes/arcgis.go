@@ -430,7 +430,7 @@ func attachments(w http.ResponseWriter, r *http.Request) {
 	//fields.Fields, "relatedRecordGroups": []interface{}{result}}
 	//useFileSystem := false
 	//if useFileSystem {
-	if config.Collector.DataSource == structs.FILE {
+	if config.Collector.DefaultDataSource == structs.FILE {
 		files, _ := ioutil.ReadDir(AttachmentPath)
 		i := 0
 		for _, f := range files {
@@ -453,17 +453,17 @@ func attachments(w http.ResponseWriter, r *http.Request) {
 		var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
 		log.Println("Table name: " + tableName)
 
-		sql := "select \"ATTACHMENTID\",\"CONTENT_TYPE\",\"ATT_NAME\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where  " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DataSource, 1) + ")"
+		sql := "select \"ATTACHMENTID\",\"CONTENT_TYPE\",\"ATT_NAME\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where  " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
 		log.Printf("%v%v", sql, row)
 
-		//stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+		//stmt, err := config.GetReplicaDB(name).Prepare(sql)
 
-		//rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql)
+		//rows, err := config.GetReplicaDB(name).Query(sql)
 		var attachmentID int32
 		var contentType string
 		var attName string
 		//err = stmt.QueryRow().Scan(&objectid)
-		rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql, row)
+		rows, err := config.GetReplicaDB(name).Query(sql, row)
 		if err != nil {
 			log.Println(err.Error())
 			//w.Write([]byte(err.Error()))
@@ -519,7 +519,7 @@ func attachments_img(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/" + row + "/attachments/img")
 	//useFileSystem := false
 	//if useFileSystem {
-	if config.Collector.DataSource == structs.FILE {
+	if config.Collector.DefaultDataSource == structs.FILE {
 
 		//var attachment = config.AttachmentsPath + string(os.PathSeparator) + name + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator) + img + ".jpg"
 		var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
@@ -543,17 +543,17 @@ func attachments_img(w http.ResponseWriter, r *http.Request) {
 		var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
 		log.Println("Table name: " + tableName)
 
-		sql := "select \"CONTENT_TYPE\",\"ATT_NAME\",\"DATA\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DataSource, 1) + ")"
+		sql := "select \"CONTENT_TYPE\",\"ATT_NAME\",\"DATA\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
 		log.Printf("%v%v", sql, row)
 
-		//stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+		//stmt, err := config.GetReplicaDB(name).Prepare(sql)
 
-		//rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql)
+		//rows, err := config.GetReplicaDB(name).Query(sql)
 		var attachment []byte
 		var contentType string
 		var attName string
 		//err = stmt.QueryRow().Scan(&objectid)
-		rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql, row)
+		rows, err := config.GetReplicaDB(name).Query(sql, row)
 		if err != nil {
 			log.Println(err.Error())
 			//w.Write([]byte(err.Error()))
@@ -629,7 +629,7 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 	var uuidstr string
 	var globalid string
 	log.Println("Table name: " + tableName)
-	if config.Collector.DataSource == structs.FILE {
+	if config.Collector.DefaultDataSource == structs.FILE {
 		var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
 		files, _ := ioutil.ReadDir(AttachmentPath)
 		//i := 0
@@ -659,7 +659,7 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 		sql := "select \"base_id\"," + config.Collector.UUID + " from " + config.Collector.Schema + "\"GDB_RowidGenerators\" where \"registration_id\" in ( SELECT \"registration_id\" FROM " + config.Collector.Schema + "\"GDB_TableRegistry\" where \"table_name\"='" + parentTableName + "')"
 		//sql := "select max(" + parentObjectID + ")+1," + config.Collector.UUID + " from " + tableName
 		log.Println(sql)
-		rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql)
+		rows, err := config.GetReplicaDB(name).Query(sql)
 		//defer rows.Close()
 
 		for rows.Next() {
@@ -673,10 +673,10 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 		rows.Close()
 		sql = "update " + config.Collector.Schema + "\"GDB_RowidGenerators\" set \"base_id\"=" + (strconv.Itoa(objectid + 1)) + " where \"registration_id\" in ( SELECT \"registration_id\" FROM " + config.Collector.Schema + "\"GDB_TableRegistry\" where \"table_name\"='" + parentTableName + "')"
 		log.Println(sql)
-		_, err = config.Collector.Projects[name].ReplicaDB.Exec(sql)
+		_, err = config.GetReplicaDB(name).Exec(sql)
 
 		//log.Println(sql)
-		//stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+		//stmt, err := config.GetReplicaDB(name).Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 			//w.Write([]byte(err.Error()))
@@ -685,13 +685,13 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 			w.Write(response)
 			return
 		}
-		//rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql)
+		//rows, err := config.GetReplicaDB(name).Query(sql)
 		//err = stmt.QueryRow().Scan(&objectid)
 
 		//get the parent globalid
-		sql = "select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName) + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DataSource, 1)
+		sql = "select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName) + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DefaultDataSource, 1)
 		//log.Println(sql)
-		stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+		stmt, err := config.GetReplicaDB(name).Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 			//w.Write([]byte(err.Error()))
@@ -701,7 +701,7 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//rows, err := config.Collector.Projects[name].ReplicaDB.Query(sql)
+		//rows, err := config.GetReplicaDB(name).Query(sql)
 		err = stmt.QueryRow(row).Scan(&globalid)
 		stmt.Close()
 	} //END SQL
@@ -746,12 +746,12 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 				ioutil.WriteFile(path, buf, os.ModePerm)
 			}
 		}
-		if config.Collector.DataSource != structs.FILE {
+		if config.Collector.DefaultDataSource != structs.FILE {
 			cols := "\"ATTACHMENTID\",\"GLOBALID\",\"REL_GLOBALID\",\"CONTENT_TYPE\",\"ATT_NAME\",\"DATA_SIZE\",\"DATA\"" //REL_GLOBALID
 			sep := ""
 			p := ""
 			for i := 1; i < 8; i++ {
-				p = p + sep + config.GetParam(config.Collector.DataSource, i)
+				p = p + sep + config.GetParam(config.Collector.DefaultDataSource, i)
 				sep = ","
 			}
 			var vals []interface{}
@@ -793,16 +793,16 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 			log.Printf("insert into %v(%v) values(%v,'%v','%v','%v','%v',%v)", config.Collector.Schema+tableName, cols, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5])
 
 			/*
-				stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sql)
+				stmt, err := config.GetReplicaDB(name).Prepare(sql)
 				if err != nil {
 					log.Println(err.Error())
 				}
 			*/
-			res, err := config.Collector.Projects[name].ReplicaDB.Exec(sql, vals...)
+			res, err := config.GetReplicaDB(name).Exec(sql, vals...)
 			if err != nil {
 				log.Println(err.Error())
 			} else {
-				if config.Collector.DataSource == structs.SQLITE3 {
+				if config.Collector.DefaultDataSource == structs.SQLITE3 {
 					objectid, err := res.LastInsertId()
 					if err != nil {
 						println("Error:", err.Error())
@@ -898,7 +898,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 	//aidInt, _ := strconv.Atoi(aid)
 	//aid = strconv.Itoa(aidInt - 1)
 
-	//if config.Collector.DataSource == structs.FILE {
+	//if config.Collector.DefaultDataSource == structs.FILE {
 	var uploadPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/" + row + "/updateAttachment")
 	const MAX_MEMORY = 10 * 1024 * 1024
@@ -923,7 +923,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//} else {
-	if config.Collector.DataSource != structs.FILE {
+	if config.Collector.DefaultDataSource != structs.FILE {
 		var parentTableName = config.Collector.Projects[name].Layers[id].Data
 		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
 
@@ -931,7 +931,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 		sep := ""
 		p := ""
 		for i := 0; i < len(cols); i++ {
-			p = p + sep + config.DblQuote(cols[i]) + "=" + config.GetParam(config.Collector.DataSource, i)
+			p = p + sep + config.DblQuote(cols[i]) + "=" + config.GetParam(config.Collector.DefaultDataSource, i)
 			sep = ","
 		}
 		var vals []interface{}
@@ -945,13 +945,13 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 
 		vals = append(vals, buf)
 
-		sql := "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + p + " where " + config.DblQuote("ATTACHMENTID") + "=" + config.GetParam(config.Collector.DataSource, 1)
+		sql := "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + p + " where " + config.DblQuote("ATTACHMENTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1)
 		log.Printf("update %v%v(%v) values('%v','%v',%v)", config.Collector.Schema, config.DblQuote(tableName), cols, vals[0], vals[1], vals[2])
-		res, err := config.Collector.Projects[name].ReplicaDB.Exec(sql, vals...)
+		res, err := config.GetReplicaDB(name).Exec(sql, vals...)
 		if err != nil {
 			log.Println(err.Error())
 		} else {
-			if config.Collector.DataSource == structs.SQLITE3 {
+			if config.Collector.DefaultDataSource == structs.SQLITE3 {
 				objectid, err := res.LastInsertId()
 				if err != nil {
 					println("Error:", err.Error())
@@ -1008,17 +1008,17 @@ func deleteAttachments(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	if config.Collector.DataSource != structs.FILE {
+	if config.Collector.DefaultDataSource != structs.FILE {
 		var parentTableName = config.Collector.Projects[name].Layers[id].Data
 		var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
 		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
 		var vals []interface{}
 		vals = append(vals, row)
 
-		sql := "delete from " + config.Collector.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("ATTACHMENTID") + "=" + config.GetParam(config.Collector.DataSource, 1)
+		sql := "delete from " + config.Collector.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("ATTACHMENTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1)
 		log.Printf("delele from %v where "+config.DblQuote(parentObjectID)+"=%v", tableName, row)
 
-		_, err := config.Collector.Projects[name].ReplicaDB.Exec(sql, vals...)
+		_, err := config.GetReplicaDB(name).Exec(sql, vals...)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -1154,7 +1154,7 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 
 	//get the fields json
 
-	if config.Collector.DataSource == structs.FILE {
+	if config.Collector.DefaultDataSource == structs.FILE {
 		//have to find the joinAttribute value for source and destination
 		/*
 			var sqlstr = "select " + outFields + " from " + config.Collector.Schema +
@@ -1296,7 +1296,7 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 	var fields []byte
 	var fieldsArr []structs.Field
 
-	if config.Collector.DataSource == structs.PGSQL {
+	if config.Collector.DefaultDataSource == structs.PGSQL {
 		sql = "select json->'fields' from " + config.Collector.Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
 		log.Printf("select json->'fields' from "+config.Collector.Schema+"services where service='%v' and name='%v' and layerid=%v and type='%v'", name, "FeatureServer", dID, "")
 		stmt, err := config.Collector.DatabaseDB.Prepare(sql)
@@ -1345,10 +1345,10 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 		}
 		//log.Println("%v", outFieldsArr)
 
-	} else if config.Collector.DataSource == structs.SQLITE3 {
+	} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
 		sql = "select json from services where service=? and name=? and layerid=? and type=?"
 		log.Printf("select json from services where service='%v' and name='%v' and layerid=%v and type='%v'", name, "FeatureServer", dID, "")
-		stmt, err := config.Collector.DatabaseDB.Prepare(sql)
+		stmt, err := config.Collector.Configuration.Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -1398,14 +1398,15 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 		config.DblQuote(config.Collector.Projects[name].Relationships[relationshipId].DTable) +
 		" where " +
 		config.DblQuote(config.Collector.Projects[name].Relationships[relationshipId].DJoinKey) +
+		" in (select " +
 		config.DblQuote(joinField) + " from " +
 		config.Collector.Schema + config.DblQuote(config.Collector.Projects[name].Relationships[relationshipId].OTable) +
-		" where " + config.DblQuote(parentObjectID) + " in(" + config.GetParam(config.Collector.DataSource, 1) + "))"
+		" where " + config.DblQuote(parentObjectID) + " in(" + config.GetParam(config.Collector.DefaultDataSource, 1) + "))"
 
 	//_, err = w.Write([]byte(sqlstr))
-	log.Println(strings.Replace(sqlstr, config.GetParam(config.Collector.DataSource, 1), objectIds, -1))
+	log.Println(strings.Replace(sqlstr, config.GetParam(config.Collector.DefaultDataSource, 1), objectIds, -1))
 
-	stmt, err := config.Collector.Projects[name].ReplicaDB.Prepare(sqlstr)
+	stmt, err := config.GetReplicaDB(name).Prepare(sqlstr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1553,7 +1554,7 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 	if len(config.Collector.Projects[name].Layers[id].JoinField) > 0 {
 		joinField = config.Collector.Projects[name].Layers[id].JoinField
 	}
-	if config.Collector.DataSource == structs.FILE {
+	if config.Collector.DefaultDataSource == structs.FILE {
 
 		//get the fields json
 		jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"

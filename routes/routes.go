@@ -13,6 +13,7 @@ func StartGorillaMux() *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/config", configuration).Methods("GET", "PUT")
+	r.HandleFunc("/info", info).Methods("GET")
 	r.HandleFunc("/offline", offline).Methods("GET", "PUT")
 	r.HandleFunc("/offline/{format}/{table}/{field}/{queryField}/{value}", offline_load).Methods("GET", "PUT")
 	r.HandleFunc("/db", db).Methods("GET")
@@ -31,6 +32,7 @@ func StartGorillaMux() *mux.Router {
 	*/
 	r.HandleFunc("/arcgis", arcgis).Methods("GET")
 	r.HandleFunc("/xml", xml).Methods("GET", "POST")
+
 	/*
 	   Root responses
 	*/
