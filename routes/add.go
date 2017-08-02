@@ -43,7 +43,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			uuidstr = strings.ToUpper(uuid.Formatter(uuid.NewV4(), uuid.FormatCanonicalCurly))
 		}
 	}
-	rows.Close()
+	defer rows.Close()
 	sql = "update " + config.Collector.Schema + "\"GDB_RowidGenerators\" set \"base_id\"=" + (strconv.Itoa(objectid + 1)) + " where \"registration_id\" in ( SELECT \"registration_id\" FROM " + config.Collector.Schema + "\"GDB_TableRegistry\" where \"table_name\"='" + parentTableName + "')"
 	log.Println(sql)
 	_, err = config.GetReplicaDB(name).Exec(sql)

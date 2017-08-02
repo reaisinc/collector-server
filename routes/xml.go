@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	config "github.com/traderboy/collector-server/config"
-	"github.com/traderboy/collector-server/structs"
 )
 
 func xml(w http.ResponseWriter, r *http.Request) {
@@ -28,43 +26,49 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 	dbPath := r.URL.Query().Get("db")
 	tableName := config.Collector.Projects[name].Layers[id].Data
 	tableName = strings.ToUpper(tableName)
+	var err error
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/xml/" + id)
-	var dbName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	if len(dbPath) > 0 {
-		if config.Collector.DefaultDataSource != structs.PGSQL {
-			if config.DbSqliteDbName != dbPath {
+	}
+	/*
+		var dbName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+		if len(dbPath) > 0 {
+			if config.Collector.DefaultDataSource != structs.PGSQL {
+				if config.DbSqliteDbName != dbPath {
+					if config.DbSqliteQuery != nil {
+						config.DbSqliteQuery.Close()
+					}
+					config.DbSqliteQuery = nil
+				}
+				config.DbSqliteDbName = dbPath
+				dbName = "file:" + dbPath + config.SqlWalFlags //+ "?PRAGMA journal_mode=WAL"
+			}
+		} else {
+			if config.DbSqliteDbName != dbName {
 				if config.DbSqliteQuery != nil {
 					config.DbSqliteQuery.Close()
 				}
 				config.DbSqliteQuery = nil
 			}
-			config.DbSqliteDbName = dbPath
-			dbName = "file:" + dbPath + config.SqlWalFlags //+ "?PRAGMA journal_mode=WAL"
+			config.DbSqliteDbName = dbName
 		}
-	} else {
-		if config.DbSqliteDbName != dbName {
-			if config.DbSqliteQuery != nil {
-				config.DbSqliteQuery.Close()
-			}
-			config.DbSqliteQuery = nil
-		}
-		config.DbSqliteDbName = dbName
-	}
 
-	var err error
-	//if err != nil {
-	if config.Collector.DefaultDataSource == structs.PGSQL {
-		config.DbSqliteQuery = config.GetReplicaDB(name)
-	} else {
-		if config.DbSqliteQuery == nil {
-			//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
-			config.DbSqliteQuery, err = sql.Open("sqlite3", dbName)
-			if err != nil {
-				log.Fatal(err)
+
+
+		//if err != nil {
+		if config.Collector.DefaultDataSource == structs.PGSQL {
+			config.DbSqliteQuery = config.GetReplicaDB(name)
+		} else {
+			if config.DbSqliteQuery == nil {
+				//config.DbSqliteQuery, err = sql.Open("sqlite3", "file:"+dbName+"?PRAGMA journal_mode=WAL")
+				config.DbSqliteQuery, err = sql.Open("sqlite3", dbName)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
-	}
+	*/
 	if r.Method == "PUT" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -76,7 +80,7 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 		}
 		//ret := config.SetArcService(body, name, "FeatureServer", idInt, "")
 		sql := "update " + config.Collector.Schema + config.DblQuote("GDB_Items") + " set " + config.DblQuote("Definition") + "=? where " + config.DblQuote("PhysicalName") + "=?" //OBJECTID=?"
-		stmt, err := config.DbSqliteQuery.Prepare(sql)
+		stmt, err := config.GetReplicaDB(name).Prepare(sql)
 		if err != nil {
 			log.Println(err.Error())
 			w.Header().Set("Content-Type", "application/json")
@@ -101,12 +105,12 @@ func xml_id(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Db.Exec(initializeStr)
-	log.Print("Sqlite database: " + dbName)
+	//log.Print("Sqlite database: " + dbName)
 	//sql := "SELECT \"DatasetName\",\"ItemId\",\"ItemInfo\",\"AdvancedDrawingInfo\" FROM \"GDB_ServiceItems\""
 	sql := "SELECT " + config.DblQuote("Definition") + " FROM " + config.Collector.Schema + config.DblQuote("GDB_Items") + " where " + config.DblQuote("PhysicalName") + "=?" //OBJECTID=?"
 	log.Printf("Query: "+sql+"%v", tableName)
 
-	stmt, err := config.DbSqliteQuery.Prepare(sql)
+	stmt, err := config.GetReplicaDB(name).Prepare(sql)
 	if err != nil {
 		log.Println(err.Error())
 		w.Header().Set("Content-Type", "application/json")

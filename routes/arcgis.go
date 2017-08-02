@@ -416,6 +416,7 @@ func uploads_upload(w http.ResponseWriter, r *http.Request) {
 		}
 	*/
 }
+
 func attachments(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
@@ -423,7 +424,11 @@ func attachments(w http.ResponseWriter, r *http.Request) {
 	row := vars["row"]
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/" + row + "/attachments")
 	//{"attachmentInfos":[{"id":5,"globalId":"xxxx","parentID":"47","name":"cat.jpg","contentType":"image/jpeg","size":5091}]}
-	var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+	//if config.Collector.Projects[name].AttachmentsPath == nil {
+	//	config.Collector.Projects[name].AttachmentsPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+	//}
+	var AttachmentPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+
 	//attachments:=[]interface{}
 	attachments := make([]interface{}, 0)
 	//[]interface{}
@@ -449,11 +454,11 @@ func attachments(w http.ResponseWriter, r *http.Request) {
 		//var objectid int
 		//config.Collector.Schema +
 		var parentTableName = config.Collector.Projects[name].Layers[id].Data
-		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
+		var tableName = parentTableName + "__ATTACH" + config.Collector.TableSuffix
 		var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
 		log.Println("Table name: " + tableName)
 
-		sql := "select \"ATTACHMENTID\",\"CONTENT_TYPE\",\"ATT_NAME\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where  " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
+		sql := "select \"ATTACHMENTID\",\"CONTENT_TYPE\",\"ATT_NAME\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where  " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.Collector.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
 		log.Printf("%v%v", sql, row)
 
 		//stmt, err := config.GetReplicaDB(name).Prepare(sql)
@@ -522,7 +527,12 @@ func attachments_img(w http.ResponseWriter, r *http.Request) {
 	if config.Collector.DefaultDataSource == structs.FILE {
 
 		//var attachment = config.AttachmentsPath + string(os.PathSeparator) + name + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator) + img + ".jpg"
-		var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+		//var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+		//if config.Collector.Projects[name].AttachmentsPath == nil {
+		//	config.Collector.Projects[name].AttachmentsPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+		//}
+		var AttachmentPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+
 		files, _ := ioutil.ReadDir(AttachmentPath)
 		//i := 0
 		for _, f := range files {
@@ -539,11 +549,11 @@ func attachments_img(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 	} else {
 		var parentTableName = config.Collector.Projects[name].Layers[id].Data
-		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
+		var tableName = parentTableName + "__ATTACH" + config.Collector.TableSuffix
 		var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
 		log.Println("Table name: " + tableName)
 
-		sql := "select \"CONTENT_TYPE\",\"ATT_NAME\",\"DATA\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
+		sql := "select \"CONTENT_TYPE\",\"ATT_NAME\",\"DATA\" from " + config.Collector.Schema + config.DblQuote(tableName) + " where " + config.DblQuote("REL_GLOBALID") + "=(select " + config.DblQuote(globalIdName) + " from " + config.Collector.Schema + config.DblQuote(parentTableName+config.Collector.TableSuffix) + " where " + config.DblQuote("OBJECTID") + "=" + config.GetParam(config.Collector.DefaultDataSource, 1) + ")"
 		log.Printf("%v%v", sql, row)
 
 		//stmt, err := config.GetReplicaDB(name).Prepare(sql)
@@ -618,19 +628,19 @@ func addAttachment(w http.ResponseWriter, r *http.Request) {
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/" + row + "/addAttachment")
 	// TODO: move and rename the file using req.files.path & .name)
 	//res.send(console.dir(req.files))  // DEBUG: display available fields
-	var uploadPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+	var uploadPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
 	os.MkdirAll(uploadPath, 0755)
 
 	var objectid int
 	var parentTableName = config.Collector.Projects[name].Layers[id].Data
 	var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
-	var tableName = parentTableName + "__ATTACH" + config.TableSuffix
+	var tableName = parentTableName + "__ATTACH" + config.Collector.TableSuffix
 	var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
 	var uuidstr string
 	var globalid string
 	log.Println("Table name: " + tableName)
 	if config.Collector.DefaultDataSource == structs.FILE {
-		var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+		var AttachmentPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
 		files, _ := ioutil.ReadDir(AttachmentPath)
 		//i := 0
 		//find the largest ATTACHMENTID and inc
@@ -899,7 +909,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 	//aid = strconv.Itoa(aidInt - 1)
 
 	//if config.Collector.DefaultDataSource == structs.FILE {
-	var uploadPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+	var uploadPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/" + row + "/updateAttachment")
 	const MAX_MEMORY = 10 * 1024 * 1024
 	if err := r.ParseMultipartForm(MAX_MEMORY); err != nil {
@@ -925,7 +935,7 @@ func updateAttachment(w http.ResponseWriter, r *http.Request) {
 	//} else {
 	if config.Collector.DefaultDataSource != structs.FILE {
 		var parentTableName = config.Collector.Projects[name].Layers[id].Data
-		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
+		var tableName = parentTableName + "__ATTACH" + config.Collector.TableSuffix
 
 		cols := []string{"CONTENT_TYPE", "ATT_NAME", "DATA_SIZE", "DATA"}
 		sep := ""
@@ -991,7 +1001,7 @@ func deleteAttachments(w http.ResponseWriter, r *http.Request) {
 	//results := []string{"objectId": id, "globalId": nil, "success": true}
 	//results := []string{aid}
 
-	var AttachmentPath = config.AttachmentsPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
+	var AttachmentPath = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "attachments" + string(os.PathSeparator) + id + string(os.PathSeparator) + row + string(os.PathSeparator)
 	files, _ := ioutil.ReadDir(AttachmentPath)
 	//i := 0
 	for _, f := range files {
@@ -1011,7 +1021,7 @@ func deleteAttachments(w http.ResponseWriter, r *http.Request) {
 	if config.Collector.DefaultDataSource != structs.FILE {
 		var parentTableName = config.Collector.Projects[name].Layers[id].Data
 		var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
-		var tableName = parentTableName + "__ATTACH" + config.TableSuffix
+		var tableName = parentTableName + "__ATTACH" + config.Collector.TableSuffix
 		var vals []interface{}
 		vals = append(vals, row)
 
@@ -1075,7 +1085,7 @@ func query(w http.ResponseWriter, r *http.Request) {
 
 		//only get the select objectIds
 		//response := config.GetArcService(name, "FeatureServer", idInt, "query")
-		response := config.GetArcQuery(name, "FeatureServer", idInt, "query", objectIds, dbPath)
+		response := config.GetArcQuery(name, "FeatureServer", idInt, "query", parentObjectID, objectIds, dbPath)
 
 		if len(response) > 0 {
 			w.Header().Set("Content-Type", "application/json")
@@ -1690,11 +1700,11 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 		//var layerId = int(config.Services[name].Relationships[relationshipId]["dId"].(float64))
 
 		if len(r.FormValue("updates")) > 0 {
-			response = Updates(name, id, tableName, tableName+config.TableSuffix, r.FormValue("updates"), globalIdName, joinField, parentObjectID)
+			response = Updates(name, id, tableName, tableName+config.Collector.TableSuffix, r.FormValue("updates"), globalIdName, joinField, parentObjectID)
 		} else if len(r.FormValue("adds")) > 0 {
-			response = Adds(name, id, tableName, tableName+config.TableSuffix, r.FormValue("adds"), joinField, globalIdName, parentObjectID)
+			response = Adds(name, id, tableName, tableName+config.Collector.TableSuffix, r.FormValue("adds"), joinField, globalIdName, parentObjectID)
 		} else if len(r.FormValue("deletes")) > 0 {
-			response = Deletes(name, id, tableName, tableName+config.TableSuffix, r.FormValue("deletes"), globalIdName, parentObjectID)
+			response = Deletes(name, id, tableName, tableName+config.Collector.TableSuffix, r.FormValue("deletes"), globalIdName, parentObjectID)
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")

@@ -23,7 +23,7 @@ func sharing_info(w http.ResponseWriter, r *http.Request) {
 
 func sharing(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing")
-	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.ArcGisVersion})
+	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.Collector.ArcGisVersion})
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 	//w.Write(response)
@@ -34,7 +34,7 @@ func sharing(w http.ResponseWriter, r *http.Request) {
 func sharing_rest(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("/sharing/rest (" + r.Method + ")")
-	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.ArcGisVersion})
+	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.Collector.ArcGisVersion})
 	//w.Write(response)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
@@ -218,6 +218,7 @@ func sharing_content_users(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 }
+
 func sharing_content_items(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
@@ -248,6 +249,7 @@ func sharing_content_items(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+"services"+string(os.PathSeparator)+"content.items.json")
 	}
 }
+
 func sharing_content_items_data(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
@@ -489,7 +491,7 @@ func sharing_content_items_info_thumbnail_v1(w http.ResponseWriter, r *http.Requ
 	//log.Println("New name:  " + id)
 
 	log.Println("/sharing/rest/content/items/" + id + "/info/thumbnail/ago_downloaded.png")
-	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.ArcGisVersion})
+	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.Collector.ArcGisVersion})
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 }

@@ -145,11 +145,11 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		log.Print(vals)
 		//log.Print(objId)
 		var sql string
-		if config.Collector.DefaultDataSource == structs.PGSQL {
-			sql = "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DefaultDataSource, len(vals))
-		} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
-			sql = "update " + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=?"
-		}
+		//if config.Collector.DefaultDataSource == structs.PGSQL {
+		//	sql = "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DefaultDataSource, len(vals))
+		//} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
+		sql = "update " + tableName + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=?"
+		//}
 
 		stmt, err := config.GetReplicaDB(name).Prepare(sql)
 		if err != nil {
@@ -177,6 +177,20 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 
 		updateTxt = updateTxt[15 : len(updateTxt)-2]
 		if config.Collector.DefaultDataSource == structs.PGSQL {
+			//update the same data in Postgresql
+			sql = "update " + config.Collector.Schema + config.DblQuote(tableName) + " set " + cols + " where " + config.DblQuote(parentObjectID) + "=" + config.GetParam(config.Collector.DefaultDataSource, len(vals))
+			stmt, err := config.Collector.DatabaseDB.Prepare(sql)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			//err = stmt.QueryRow(name, "FeatureServer", idInt, "").Scan(&fields)
+			_, err = stmt.Exec(vals...)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			stmt.Close()
+
+			//now update the JSON
 			sql = "select pos-1  from " + config.Collector.Schema + "services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=$1 and elem->'attributes'->>'OBJECTID'=$2"
 
 			log.Println(sql)
@@ -236,11 +250,14 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 			for k, i := range fieldObj.Features {
 				//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
 				//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
-				if int(i.Attributes[parentObjectID].(float64)) == objectid {
+				//if i.Attributes[parentObjectID] != nil {
+				oid := int(i.Attributes[parentObjectID].(float64))
+				if oid == objectid {
 					//i.Attributes["OBJECTID"]
 					fieldObj.Features[k].Attributes = updates[num].Attributes
 					break
 				}
+				//}
 			}
 			var jsonstr []byte
 			jsonstr, err = json.Marshal(fieldObj)

@@ -91,7 +91,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/db/" + id)
 
-	var dbName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	//var dbName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	//var parentObjectID = config.Collector.Projects[name].Layers[id]["oidname"].(string)
 	/*
 		if len(dbPath) > 0 {
@@ -163,7 +163,7 @@ func db_id(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Db.Exec(initializeStr)
-	log.Print("Sqlite database: " + dbName)
+	//log.Print("Sqlite database: " + dbName)
 	//sql := "SELECT \"DatasetName\",\"ItemId\",\"ItemInfo\",\"AdvancedDrawingInfo\" FROM \"GDB_ServiceItems\""
 	sql := "SELECT " + fieldStr + " FROM " + config.Collector.Schema + config.DblQuote("GDB_ServiceItems") + " where " + config.DblQuote("OBJECTID") + "=?"
 	log.Printf("Query: "+sql+"%v", idInt)

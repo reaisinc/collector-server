@@ -11,8 +11,9 @@
             "host": "127.0.0.1",
             "program": "${workspaceRoot}",
             "cwd": "${workspaceRoot}",
-            "env": {},
+            "env": {"GO_EXTLINK_ENABLED":0},
             "args": [],
+            //"-ldflags \"-linkmode internal\""
             //"args" : ["-data","C:\\docker\\src\\github.com\\traderboy\\bristow"],
             //"args" : ["-pgsql","user=postgres dbname=gis host=192.168.99.100","-root","D:/workspace/go/src/github.com/traderboy/arcrestgo/catalogs"],
             //"args": ["-file","-root","D:/workspace/go/src/github.com/traderboy/arcrestgo/catalogs"],

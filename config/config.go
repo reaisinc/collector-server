@@ -28,16 +28,16 @@ const (
 */
 //var Catalogs map[string]structs.Catalog
 
-var DbSource = 0 // SQLITE3
+//var DbSource = 0 // SQLITE3
 
-var Schema = "" //= "postgres."
-var TableSuffix = ""
-var DbTimeStamp = ""
+//var Schema = "" //= "postgres."
+//var TableSuffix = ""
+//var DbTimeStamp = ""
 
 var Collector structs.Collector
 
 //var Project structs.Project
-var DataPath = "catalogs"
+//var DataPath = "catalogs"
 var SqlFlags = "?cache=shared&mode=wrc"
 var SqlWalFlags = "?PRAGMA journal_mode=WAL"
 
@@ -52,31 +52,32 @@ var UUID = ""
 //"github.com/gin-gonic/gin"
 //Db is the SQLITE databa se object
 
-var configFile = DataPath + string(os.PathSeparator) + "config.json"
-var ArcGisVersion = "3.8"
+//var configFile = DataPath + string(os.PathSeparator) + "config.json"
+//var ArcGisVersion = "3.8"
 
 //var Db *sql.DB
 //var DbQuery *sql.DB
-var DbSqliteQuery *sql.DB
-var DbSqliteDbName string
+//var DbSqliteQuery *sql.DB
+//var DbSqliteDbName string
 
 //var port = ":8080"
 
 //var DataPath = RootPath        //+ string(os.PathSeparator)        //+ string(os.PathSeparator) //+ "services"
-var ReplicaPath = DataPath     //+ string(os.PathSeparator)     //+ "replicas"
-var AttachmentsPath = DataPath //+ string(os.PathSeparator) //+ "attachments"
+//var ReplicaPath = DataPath     //+ string(os.PathSeparator)     //+ "replicas"
+//var AttachmentsPath = DataPath //+ string(os.PathSeparator) //+ "attachments"
 
 //var CertificatePath = "ssl" + string(os.PathSeparator) + "agent2-cert.cert"
 
 //var config map[string]interface{}
 //var defaultService = ""
-var UploadPath = ""
+//var UploadPath = ""
 var Server = ""
 var RefreshToken = "51vzPXXNl7scWXsw7YXvhMp_eyw_iQzifDIN23jNSsQuejcrDtLmf3IN5_bK0P5Z9K9J5dNb2yBbhXqjm9KlGtv5uDjr98fsUAAmNxGqnz3x0tvl355ZiuUUqqArXkBY-o6KaDtlDEncusGVM8wClk0bRr1-HeZJcR7ph9KU9khoX6H-DcFEZ4sRdl9c16exIX5lGIitw_vTmuomlivsGIQDq9thskbuaaTHMtP1m3VVnhuRQbyiZTLySjHDR8OVllSPc2Fpt0M-F5cPl_3nQg.."
 var AccessToken = "XMdOaajM4srQWx8nQ77KuOYGO8GupnCoYALvXEnTj0V_ZXmEzhrcboHLb7hGtGxZCYUGFt07HKOTnkNLah8LflMDoWmKGr4No2LBSpoNkhJqc9zPa2gR3vfZp5L3yXigqxYOBVjveiuarUo2z_nqQ401_JL-mCRsXq9NO1DYrLw."
 var once sync.Once
 
 func Initialize() {
+	var DataPath = "catalogs"
 	SqlFlags = ""
 	SqlWalFlags = ""
 	//clear out variables in case Initialize is run again
@@ -306,8 +307,8 @@ func Initialize() {
 		}
 	*/
 
-	LoadConfigurationFromFile()
-	Collector.DataPath = DataPath
+	LoadConfigurationFromFile(DataPath)
+	//Collector.DataPath = DataPath
 
 	//override any settings from config file
 	if len(Collector.HttpPort) == 1 {
@@ -345,6 +346,7 @@ func Initialize() {
 		Collector.TableSuffix = "_evw"
 		Collector.UUID = "(select '{'||upper(substr(u,1,8)||'-'||substr(u,9,4)||'-4'||substr(u,13,3)||'-'||v||substr(u,17,3)||'-'||substr(u,21,12))||'}' from ( select lower(hex(randomblob(16))) as u, substr('89ab',abs(random()) % 4 + 1, 1) as v) as foo)"
 		Collector.DbTimeStamp = "(julianday('now') - 2440587.5)*86400.0*1000"
+		Collector.DatabaseDB = Collector.Configuration
 
 		//once.Do(initDB)
 		/*
@@ -721,8 +723,8 @@ func LoadConfiguration() {
 	//}
 }
 */
-func LoadConfigurationFromFile() {
-	configFile = DataPath + string(os.PathSeparator) + "config.json"
+func LoadConfigurationFromFile(DataPath string) {
+	var configFile = DataPath + string(os.PathSeparator) + "config.json"
 	//var json []byte
 	file, err1 := ioutil.ReadFile(configFile)
 	if err1 != nil {
@@ -815,7 +817,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 			}
 
 		}
-		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), catalog, string(os.PathSeparator), "services", string(os.PathSeparator), service, sp, dtype, "json")
+		jsonFile := fmt.Sprint(Collector.DataPath, string(os.PathSeparator), catalog, string(os.PathSeparator), "services", string(os.PathSeparator), service, sp, dtype, "json")
 		file, err := ioutil.ReadFile(jsonFile)
 		if err != nil {
 			log.Println(err)
@@ -840,6 +842,7 @@ func GetArcService(catalog string, service string, layerid int, dtype string, db
 
 //GetArcCatalog queries the database for top level catalog entries
 func GetArcCatalog(service string, dtype string, dbPath string) []byte {
+
 	if Collector.DefaultDataSource == structs.FILE || service == "config" {
 		if len(service) > 0 {
 			service += "."
@@ -849,7 +852,7 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 			dtype += "."
 		}
 
-		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), service, dtype, "json")
+		jsonFile := fmt.Sprint(Collector.DataPath, string(os.PathSeparator), service, dtype, "json")
 		file, err := ioutil.ReadFile(jsonFile)
 		if err != nil {
 			log.Println(err)
@@ -878,6 +881,9 @@ func GetArcCatalog(service string, dtype string, dbPath string) []byte {
 }
 
 func SetArcService(json []byte, catalog string, service string, layerid int, dtype string, dbPath string) bool {
+	if service == "info" {
+		return true
+	}
 	if Collector.DefaultDataSource == structs.FILE {
 		if len(service) > 0 {
 			service += "."
@@ -895,7 +901,7 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 			}
 		}
 
-		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), catalog, string(os.PathSeparator), "services", string(os.PathSeparator), service, sp, dtype, "json")
+		jsonFile := fmt.Sprint(Collector.DataPath, string(os.PathSeparator), catalog, string(os.PathSeparator), "services", string(os.PathSeparator), service, sp, dtype, "json")
 		err := ioutil.WriteFile(jsonFile, json, 0644)
 		if err != nil {
 			return false
@@ -921,6 +927,10 @@ func SetArcService(json []byte, catalog string, service string, layerid int, dty
 
 //GetArcCatalog queries the database for top level catalog entries
 func SetArcCatalog(json []byte, service string, dtype string, dbPath string) bool {
+	if service == "info" {
+		return true
+	}
+
 	if Collector.DefaultDataSource == structs.FILE || service == "config" {
 		if len(service) > 0 {
 			service += "."
@@ -929,7 +939,7 @@ func SetArcCatalog(json []byte, service string, dtype string, dbPath string) boo
 			dtype += "."
 		}
 
-		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), service, dtype, "json")
+		jsonFile := fmt.Sprint(Collector.DataPath, string(os.PathSeparator), service, dtype, "json")
 		err := ioutil.WriteFile(jsonFile, json, 0644)
 		if err != nil {
 			return false
@@ -954,7 +964,7 @@ func SetArcCatalog(json []byte, service string, dtype string, dbPath string) boo
 	return true
 }
 
-func GetArcQuery(catalog string, service string, layerid int, dtype string, objectIds string, where string) []byte {
+func GetArcQuery(catalog string, service string, layerid int, dtype string, oidname string, objectIds string, where string) []byte {
 	//objectIdsInt, _ := strconv.Atoi(objectIds)
 	objectIdsArr := strings.Split(objectIds, ",")
 	var objectIdsFloat = []float64{}
@@ -969,7 +979,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 	if Collector.DefaultDataSource == structs.FILE {
 		//config.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json"
 
-		jsonFile := fmt.Sprint(DataPath, string(os.PathSeparator), catalog+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", layerid, ".query.json")
+		jsonFile := fmt.Sprint(Collector.DataPath, string(os.PathSeparator), catalog+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", layerid, ".query.json")
 		log.Println(jsonFile)
 		file, err1 := ioutil.ReadFile(jsonFile)
 		if err1 != nil {
@@ -986,7 +996,8 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 		var results []structs.Feature
 		for _, i := range srcObj.Features {
 			//if int(i.Attributes["OBJECTID"].(float64)) == objectIdsInt {
-			if in_float_array(i.Attributes["OBJECTID"].(float64), objectIdsFloat) {
+			oid := i.Attributes[oidname].(float64)
+			if in_float_array(oid, objectIdsFloat) {
 				//oJoinVal = i.Attributes[oJoinKey]
 				results = append(results, i)
 				//break
@@ -1024,7 +1035,8 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 		var results []structs.Feature
 		for _, i := range featureObj.Features {
 			//if int(i.Attributes["OBJECTID"].(float64)) == objectIdsInt {
-			if in_float_array(i.Attributes["OBJECTID"].(float64), objectIdsFloat) {
+			oid := i.Attributes[oidname].(float64)
+			if in_float_array(oid, objectIdsFloat) {
 				//oJoinVal = i.Attributes[oJoinKey]
 				results = append(results, i)
 				//break
@@ -1062,10 +1074,11 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, obje
 		var results []structs.Feature
 		for _, i := range featureObj.Features {
 			//if int(i.Attributes["OBJECTID"].(float64)) == objectIdsInt {
-			if in_float_array(i.Attributes["OBJECTID"].(float64), objectIdsFloat) {
+
+			oid := i.Attributes[oidname].(float64)
+			if in_float_array(oid, objectIdsFloat) {
 				//oJoinVal = i.Attributes[oJoinKey]
 				results = append(results, i)
-
 				//break
 			}
 		}

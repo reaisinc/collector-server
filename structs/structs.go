@@ -27,27 +27,29 @@ type Catalog struct {
 
 //JSONConfig stores the metadata about a service
 type Collector struct {
+	ArcGisVersion     string `json:"arcMapVersion"`
 	Configuration     *sql.DB
 	DatabaseDB        *sql.DB
 	DefaultProject    string `json:"defaultProject"`
 	DefaultDataSource string `json:"defaultDatabase"`
+
 	//DataSource        string `json:"dataSource"`
-	DataName          string `json:"dataName"`
-	DataPath          string `json:"dataPath"`
-	SqliteDb          string `json:"sqliteDb"`
-	Username          string `json:"username"`
-	Hostname          string `json:"hostname"`
-	PG                string `json:"pg"`
-	Pem               string `json:"pemPath"`
-	Cert              string `json:"certPath"`
-	HttpPort          string `json:"httpPort"`
-	HttpsPort         string `json:"httpsPort"`
-	Schema            string `json:"schema,omitempty"`
-	UUID              string
-	DbTimeStamp       string
-	TableSuffix       string
-	Projects          map[string]*Project `json:"projects"`
-	IsLoaded          bool
+	DataName    string `json:"dataName"`
+	DataPath    string `json:"dataPath"`
+	SqliteDb    string `json:"sqliteDb"`
+	Username    string `json:"username"`
+	Hostname    string `json:"hostname"`
+	PG          string `json:"pg"`
+	Pem         string `json:"pemPath"`
+	Cert        string `json:"certPath"`
+	HttpPort    string `json:"httpPort"`
+	HttpsPort   string `json:"httpsPort"`
+	Schema      string `json:"schema,omitempty"`
+	UUID        string
+	DbTimeStamp string
+	TableSuffix string
+	Projects    map[string]*Project `json:"projects"`
+	IsLoaded    bool
 	//ReplicaDB         map[string]*sql.DB
 	//Services
 	//Services map[string]map[string]Service
@@ -60,7 +62,9 @@ type Project struct {
 	MXD         string `json:"mxd"`
 	DataPath    string `json:"dataPath"`
 	ReplicaPath string `json:"replica"`
-	ReplicaDB   *sql.DB
+	//AttachmentsPath *string `json:"replica"`
+	//UploadsPath     string  `json:"replica"`
+	ReplicaDB *sql.DB
 	//Services   map[string]map[string]map[string]map[string]interface{} `json:"services"`
 	//Layers        map[string]map[string]interface{} `json:"layers"`
 	//Relationships map[string]map[string]interface{} `json:"relationships"`
