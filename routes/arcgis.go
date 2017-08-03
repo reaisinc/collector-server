@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -50,7 +49,7 @@ func replicas(w http.ResponseWriter, r *http.Request) {
 	name := vars["name"]
 
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/replicas")
-	var fileName = config.Collector.Projects[name].ReplicaPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
+	var fileName = config.Collector.Projects[name].ReplicaPath // + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
 	log.Println("Sending: " + fileName)
 	http.ServeFile(w, r, fileName) //, { root : __dirname})
 }
@@ -1163,389 +1162,37 @@ func queryRelatedRecords(w http.ResponseWriter, r *http.Request) {
 	var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
 
 	//get the fields json
+	var response []byte
 
 	if config.Collector.DefaultDataSource == structs.FILE {
-		//have to find the joinAttribute value for source and destination
-		/*
-			var sqlstr = "select " + outFields + " from " + config.Collector.Schema +
-				config.Collector.Projects[name].Relationships[relationshipId]["dTable"].(string) +
-				" where " +
-				config.Collector.Projects[name].Relationships[relationshipId]["dJoinKey"].(string) + " in (select " +
-				config.Collector.Projects[name].Relationships[relationshipId]["oJoinKey"].(string) + " from " +
-				config.Collector.Projects[name].Relationships[relationshipId]["oTable"].(string) +
-				" where OBJECTID in(" + config.GetParam(1) + "))"
-		*/
-		var dJoinKey = config.Collector.Projects[name].Relationships[relationshipId].DJoinKey
-		var oJoinKey = config.Collector.Projects[name].Relationships[relationshipId].OJoinKey
-
-		jsonFile := fmt.Sprint(config.Collector.DataPath, string(os.PathSeparator), name+string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", id, ".query.json")
-		log.Println(jsonFile)
-		file, err1 := ioutil.ReadFile(jsonFile)
-		if err1 != nil {
-			log.Println(err1)
-		}
-		var srcObj structs.FeatureTable
-
-		//map[string]map[string]map[string]
-		err := json.Unmarshal(file, &srcObj)
-		if err != nil {
-			log.Println("Error unmarshalling fields into features object: " + string(file))
-			log.Println(err.Error())
-		}
-
-		var oJoinVal interface{}
-		for _, i := range srcObj.Features {
-			//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
-			//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
-
-			if int(i.Attributes[parentObjectID].(float64)) == objectId {
-				oJoinVal = i.Attributes[oJoinKey]
-				//i.Attributes["OBJECTID"]
-				//fieldObj.Features[k].Attributes = updates[num].Attributes
-				break
-				//record.RelatedRecord = append(record.RelatedRecord, fieldObj.Features[k].Attributes)
-			}
-		}
-		//oJoinVal = strings.Replace(oJoinVal.(string), "{", "", -1)
-		//oJoinVal = strings.Replace(oJoinVal.(string), "}", "", -1)
-		//oJoinVal = strings.ToLower(oJoinVal.(string))
-
-		//strconv.Itoa(int(dID.(float64)))
-		jsonFile = fmt.Sprint(config.Collector.DataPath, string(os.PathSeparator), name, string(os.PathSeparator), "services", string(os.PathSeparator), "FeatureServer.", dID, ".query.json")
-		log.Println(jsonFile)
-		file, err1 = ioutil.ReadFile(jsonFile)
-		if err1 != nil {
-			log.Println(err1)
-		}
-		var fieldObj structs.FeatureTable
-
-		//map[string]map[string]map[string]
-		err = json.Unmarshal(file, &fieldObj)
-		if err != nil {
-			log.Println("Error unmarshalling fields into features object: " + string(file))
-			log.Println(err.Error())
-		}
-		var relRecords structs.RelatedRecords
-		relRecords.Fields = fieldObj.Fields
-
-		var recordGroup structs.RelatedRecordGroup
-		recordGroup.ObjectId = objectId
-
-		//records.RelatedRecordGroups.ObjectId = objectId
-		//records.ObjectId = objectId
-		//records.RelatedRecord = map[string]interface{}
-		//c := 0
-		//log.Printf("Finding: %v", oJoinVal)
-
-		for k, i := range fieldObj.Features {
-			//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
-			//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
-
-			if i.Attributes[dJoinKey] == oJoinVal {
-				//if strings.EqualFold(i.Attributes[dJoinKey],oJoinVal)
-				//log.Printf("Found: %v", i.Attributes[dJoinKey])
-				var rec structs.RelatedRecord
-				//i.Attributes["OBJECTID"]
-				//fieldObj.Features[k].Attributes = updates[num].Attributes
-				//break
-				//var attributes structs.Attribute
-				//attributes = fieldObj.Features[k].Attributes
-				//rec.Attributes = append(rec.Attributes, fieldObj.Features[k].Attributes)
-				rec.Attributes = fieldObj.Features[k].Attributes
-				recordGroup.RelatedRecords = append(recordGroup.RelatedRecords, rec)
-				//c++
-			}
-
-		}
-
-		var jsonstr []byte
-		//if c == 0 {
-		//	records.RelatedRecordGroups = records.RelatedRecordGroups[:0]
-		//}
-		if len(recordGroup.RelatedRecords) > 0 {
-			relRecords.RelatedRecordGroups = append(relRecords.RelatedRecordGroups, recordGroup)
-		} else {
-			relRecords.RelatedRecordGroups = make([]structs.RelatedRecordGroup, 0)
-		}
-		jsonstr, err = json.Marshal(relRecords)
-		if err != nil {
-			log.Println(err)
-		}
-
-		/*
-			tx, err := config.Collector.DatabaseDB.Begin()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			var response []byte
-			if len(final_result) > 0 {
-				var result = map[string]interface{}{}
-				result["objectId"] = objectIds //strconv.Atoi(objectIds)
-				result["relatedRecords"] = final_result
-				response, _ = json.Marshal(map[string]interface{}{"relatedRecordGroups": []interface{}{result}})
-				response = response[1:]
-			} else {
-				response = []byte("\"relatedRecordGroups\":[]}")
-			}
-		*/
+		response = queryRelatedRecordsFile(name, id, relationshipId, objectIds, objectId, outFields, parentObjectID, dID)
 
 		//var response []byte
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonstr)
-		return
+
 		//response = "{fields:" + fields + "," + response[1]
 		//w.Write([]byte("{\"fields\":"))
 		//w.Write(fields)
 		//w.Write([]byte(","))
 		//w.Write(response)
+	} else {
+		response = queryRelatedRecordsDB(name, id, relationshipId, objectIds, objectId, outFields, parentObjectID, dID)
+		//var response []byte
+
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+
 	//idInt, _ := strconv.Atoi(id)
 
-	var sql string
-	var fields []byte
-	var fieldsArr []structs.Field
-
-	if config.Collector.DefaultDataSource == structs.PGSQL {
-		sql = "select json->'fields' from " + config.Collector.Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
-		log.Printf("select json->'fields' from "+config.Collector.Schema+"services where service='%v' and name='%v' and layerid=%v and type='%v'", name, "FeatureServer", dID, "")
-		stmt, err := config.Collector.DatabaseDB.Prepare(sql)
-		if err != nil {
-			log.Println(err.Error())
-		}
-
-		err = stmt.QueryRow(name, "FeatureServer", dID, "").Scan(&fields)
-		if err != nil {
-			log.Println(err.Error())
-			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte("{\"fields\":[],\"relatedRecordGroups\":[]}"))
-			return
-		}
-		err = json.Unmarshal(fields, &fieldsArr)
-		if err != nil {
-			log.Println("Error unmarshalling fields into features object: " + string(fields))
-			log.Println(err.Error())
-		}
-		/*
-			var outFieldsArr []string
-			if outFields != "*" {
-				outFieldsArr = strings.Split(outFields, ",")
-			}
-		*/
-		outFields = ""
-		pre := ""
-		//need to change date fields to TO_CHAR(created_date, 'J')
-		for _, i := range fieldsArr {
-			//log.Println("%v %v\n", k, i)
-			if i.Type == "esriFieldTypeDate" {
-				//outFields += pre + "TO_CHAR(" + i.Name + ", 'J') as " + i.Name
-				outFields += pre + "(CAST (to_char(" + i.Name + ", 'J') AS INT) - 2440587.5)*86400.0*1000  as " + i.Name
-			} else {
-				outFields += pre + config.DblQuote(i.Name)
-			}
-			pre = ","
-			//outFields += config.DblQuote(fieldObj.Features[k].Attributes)
-			//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
-			//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
-			//if int(i.Attributes[parentObjectID].(float64)) == objectid {
-			//i.Attributes["OBJECTID"]
-			//fieldObj.Features[k].Attributes = updates[0].Attributes
-			//break
-			//}
-		}
-		//log.Println("%v", outFieldsArr)
-
-	} else if config.Collector.DefaultDataSource == structs.SQLITE3 {
-		sql = "select json from services where service=? and name=? and layerid=? and type=?"
-		log.Printf("select json from services where service='%v' and name='%v' and layerid=%v and type='%v'", name, "FeatureServer", dID, "")
-		stmt, err := config.Collector.Configuration.Prepare(sql)
-		if err != nil {
-			log.Println(err.Error())
-		}
-
-		err = stmt.QueryRow(name, "FeatureServer", dID, "").Scan(&fields)
-		if err != nil {
-			log.Println(err.Error())
-			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte("{\"fields\":[],\"relatedRecordGroups\":[]}"))
-			return
-		}
-		//fields = fields["fields"]
-
-		var fieldObj structs.FeatureTable
-		//map[string]map[string]map[string]
-		err = json.Unmarshal(fields, &fieldObj)
-		if err != nil {
-			log.Println("Error unmarshalling fields into features object: " + string(fields))
-			log.Println(err.Error())
-		}
-		fieldsArr = fieldObj.Fields
-
-	}
-	//Fields            []Field   `json:"fields,omitempty"`
-	//create outFields
-
-	//fields = fields["fields"]
-	//map[string]map[string]map[string]
-
-	//for
-
-	//_, err = w.Write(fields)
-	//return
-	//var replicaDb = config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "replicas" + string(os.PathSeparator) + name + ".geodatabase"
-	//var tableName = config.Collector.Projects[name].Relationships[relationshipId]["dTable"].(string)
-
-	//log.Println(tableName)
-	//var layerId = int(config.Services[name].Relationships[relationshipId]["dId"].(float64))
-	//var jsonFields=JSON.parse(file)
-	//log.Println("sqlite: " + replicaDb)
-	//var db = new sqlite3.Database(replicaDb)
-	joinField := config.Collector.Projects[name].Relationships[relationshipId].OJoinKey
-	//if joinField == "GlobalID" || joinField == "GlobalGUUD" {
-	//	joinField = "substr(" + joinField + ", 2, length(" + joinField + ")-2)"
-	//}
-	var sqlstr = "select " + outFields + " from " + config.Collector.Schema +
-		config.DblQuote(config.Collector.Projects[name].Relationships[relationshipId].DTable) +
-		" where " +
-		config.DblQuote(config.Collector.Projects[name].Relationships[relationshipId].DJoinKey) +
-		" in (select " +
-		config.DblQuote(joinField) + " from " +
-		config.Collector.Schema + config.DblQuote(config.Collector.Projects[name].Relationships[relationshipId].OTable) +
-		" where " + config.DblQuote(parentObjectID) + " in(" + config.GetParam(config.Collector.DefaultDataSource, 1) + "))"
-
-	//_, err = w.Write([]byte(sqlstr))
-	log.Println(strings.Replace(sqlstr, config.GetParam(config.Collector.DefaultDataSource, 1), objectIds, -1))
-
-	stmt, err := config.GetReplicaDB(name).Prepare(sqlstr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//outArr := []interface{}{}
-	//relationshipIdInt, _ := strconv.Atoi(relationshipId)
-	objectidArr, _ := strconv.Atoi(objectIds)
-	rows, err := stmt.Query(objectidArr) //relationshipIdInt
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	//var colLookup = map[string]interface{}{"objectid": "OBJECTID", "globalid": "GlobalID", "creationdate": "CreationDate", "creator": "Creator", "editdate": "EditDate", "editor": "Editor"}
-	var colLookup = map[string]string{"objectid": "OBJECTID", "globalguid": "GlobalGUID", "globalid": "GlobalID", "creationdate": "CreationDate", "creator": "Creator", "editdate": "EditDate", "editor": "Editor", "comments": "Comments"}
-	var guuids = map[string]int{"GlobalGUID": 1, "GlobalID": 1}
-	var dates = map[string]int{"created_date": 1, "last_edited_date": 1}
-	columns, _ := rows.Columns()
-	//colTypes, _ := rows.ColumnTypes()
-	count := len(columns)
-	values := make([]interface{}, count)
-	valuePtrs := make([]interface{}, count)
-	//for i, col := range colTypes {
-	//	log.Printf("%v: %v", col.Name, col.DatabaseTypeName)
-	//}
-	//final_result := map[int]map[string]string{}
-	//works final_result := map[int]map[string]interface{}{}
-	final_result := make([]interface{}, 0)
-	result_id := 0
-	//log.Println("Query ran successfully")
-	for rows.Next() {
-		//log.Println("next row")
-		for i, _ := range columns {
-			valuePtrs[i] = &values[i]
-			//log.Println(i)
-		}
-		rows.Scan(valuePtrs...)
-		//tmp_struct := map[string]string{}
-		tmp_struct := map[string]interface{}{}
-
-		for i, col := range columns {
-			//var v interface{}
-			val := values[i]
-
-			if colLookup[col] != "" {
-				col = colLookup[col]
-			}
-			//fmt.Printf("Integer: %v=%v\n", col, val)
-			switch t := val.(type) {
-			case int:
-				//fmt.Printf("Integer: %v=%v\n", col, t)
-				tmp_struct[col] = val
-			case float64:
-				tmp_struct[col] = val
-				if dates[col] == 1 && val != nil {
-					tmp_struct[col] = int(val.(float64))
-				} else {
-					tmp_struct[col] = val
-				}
-				//fmt.Printf("Float64: %v %v\n", col, val)
-			case []uint8:
-				//fmt.Printf("Col: %v (uint8): %v\n", col, t)
-				b, _ := val.([]byte)
-				tmp_struct[col] = fmt.Sprintf("%s", b)
-				//sqlite
-				if guuids[col] == 1 && tmp_struct[col] != nil {
-					tmp_struct[col] = strings.Trim(tmp_struct[col].(string), "{}")
-				}
-				//fmt.Printf("Col: %v (uint8): %v\n", col, tmp_struct[col])
-
-			case int64:
-				//fmt.Printf("Integer 64: %v\n", t)
-				tmp_struct[col] = val
-			case string:
-				tmp_struct[col] = fmt.Sprintf("%s", val)
-				//pg
-				if guuids[col] == 1 && tmp_struct[col] != nil {
-					tmp_struct[col] = strings.Trim(tmp_struct[col].(string), "{}")
-				}
-				//fmt.Printf("String: %v=%v:  %v\n", col, val, tmp_struct[col])
-			case bool:
-				//fmt.Printf("Bool: %v\n", t)
-				tmp_struct[col] = val
-			case []interface{}:
-				for i, n := range t {
-					fmt.Printf("Item: %v= %v\n", i, n)
-				}
-			default:
-				var r = reflect.TypeOf(t)
-				tmp_struct[col] = r
-				//fmt.Printf("Other:%v=%v\n", col, r)
-			}
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
-		//log.Println(tmp_struct)
-		record := map[string]interface{}{"attributes": tmp_struct}
-		final_result = append(final_result, record)
-		result_id++
-	}
-	//log.Println("Query end successfully")
-	var response []byte
-	if len(final_result) > 0 {
-		var result = map[string]interface{}{}
-		//result["objectId"] = objectIds //strconv.Atoi(objectIds)
-		//OBS! must convert objectID to int or it fails on Android
-		oid, _ := strconv.Atoi(objectIds)
-		result["objectId"] = oid
-		result["relatedRecords"] = final_result
-		response, _ = json.Marshal(map[string]interface{}{"relatedRecordGroups": []interface{}{result}})
-		response = response[1:]
-	} else {
-		response = []byte("\"relatedRecordGroups\":[]}")
-	}
-	//convert fields to string
-	fields, err = json.Marshal(fieldsArr)
-	if err != nil {
-		log.Println(err)
-	}
-
 	//var response []byte
-	w.Header().Set("Content-Type", "application/json")
-	//response = "{fields:" + fields + "," + response[1]
-	w.Write([]byte("{\"fields\":"))
-	w.Write(fields)
-	w.Write([]byte(","))
-	w.Write(response)
+	/*
+		w.Header().Set("Content-Type", "application/json")
+		//response = "{fields:" + fields + "," + response[1]
+		w.Write([]byte("{\"fields\":"))
+		w.Write(fields)
+		w.Write([]byte(","))
+		w.Write(response)
+	*/
 	//w.Write([]byte("}"))
 }
 
@@ -1564,138 +1211,171 @@ func applyEdits(w http.ResponseWriter, r *http.Request) {
 	if len(config.Collector.Projects[name].Layers[id].JoinField) > 0 {
 		joinField = config.Collector.Projects[name].Layers[id].JoinField
 	}
+	var tableName = config.Collector.Projects[name].Layers[id].Data
+	var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
+
 	if config.Collector.DefaultDataSource == structs.FILE {
 
 		//get the fields json
-		jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
-		log.Println(jsonFile)
-		file, err1 := ioutil.ReadFile(jsonFile)
-		if err1 != nil {
-			log.Println(err1)
-		}
-		var fieldObj structs.FeatureTable
-
-		//map[string]map[string]map[string]
-		err := json.Unmarshal(file, &fieldObj)
-		if err != nil {
-			log.Println("Error unmarshalling fields into features object: " + string(file))
-			log.Println(err.Error())
-		}
-		var objectid int
-		//var globalID string
-		var results []interface{}
-		if len(r.FormValue("updates")) > 0 {
-			var updates structs.Record
-			decoder := json.NewDecoder(strings.NewReader(r.FormValue("updates"))) //r.Body
-			err := decoder.Decode(&updates)
-			if err != nil {
-				panic(err)
-			}
-			//var objId int
-			for k, i := range fieldObj.Features {
-				//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
-				//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
-				if int(i.Attributes[parentObjectID].(float64)) == objectid {
-					//i.Attributes["OBJECTID"]
-					fieldObj.Features[k].Attributes = updates[0].Attributes
-					break
-				}
-			}
-			var jsonstr []byte
-			jsonstr, err = json.Marshal(fieldObj)
-			if err != nil {
-				log.Println(err)
-			}
-			err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
-			if err != nil {
+		/*
+			current_time := time.Now().Local()
+			jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
+			//log.Println(jsonFile)
+			file, err1 := ioutil.ReadFile(jsonFile)
+			if err1 != nil {
 				log.Println(err1)
 			}
-			//write json back to file
-			result := map[string]interface{}{}
-			result["objectId"] = objectid
-			result["success"] = true
-			result["globalId"] = nil
-			results = append(results, result)
-			response, _ = json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": results, "deleteResults": []string{}})
+			var fieldObj structs.FeatureTable
 
-			//response = Updates(name, id, tableName, r.FormValue("updates"))
-		} else if len(r.FormValue("adds")) > 0 {
-			//response = Adds(name, id, tableName, r.FormValue("adds"))
-			var adds []structs.Feature
-			decoder := json.NewDecoder(strings.NewReader(r.FormValue("adds"))) //r.Body
-			err := decoder.Decode(&adds)
+			//map[string]map[string]map[string]
+			err := json.Unmarshal(file, &fieldObj)
 			if err != nil {
-				panic(err)
+				log.Println("Error unmarshalling fields into features object: " + string(file))
+				log.Println(err.Error())
 			}
-			objectid = len(fieldObj.Features) + 1
-			for _, i := range adds {
-				//i.Attributes["objectId"] = objectid
-				i.Attributes[parentObjectID] = objectid
-				//i.Attributes["globalId"]=strings.ToUpper(i.Attributes["globalId"])
-				if len(i.Attributes[joinField].(string)) > 0 {
-					//input := strings.ToUpper(i.Attributes[joinField].(string))
-					//tmpStr := input[1 : len(input)-1]
-					i.Attributes[joinField] = strings.ToUpper(i.Attributes[joinField].(string))
-					i.Attributes[joinField] = strings.Replace(i.Attributes[joinField].(string), "{", "", -1)
-					i.Attributes[joinField] = strings.Replace(i.Attributes[joinField].(string), "}", "", -1)
-					//strings.ToUpper(i.Attributes[joinField].(string)).Replace("{", "").Replace("{", "")
+		*/
+		if len(r.FormValue("updates")) > 0 {
+			response = UpdatesFile(name, id, tableName, r.FormValue("updates"), globalIdName, joinField, parentObjectID)
+		} else if len(r.FormValue("adds")) > 0 {
+			response = AddsFile(name, id, tableName, r.FormValue("adds"), joinField, globalIdName, parentObjectID)
+		} else if len(r.FormValue("deletes")) > 0 {
+			response = DeletesFile(name, id, tableName, r.FormValue("deletes"), globalIdName, parentObjectID)
+		}
+		/*
+
+
+			var objectid int
+			//var globalID string
+			var results []interface{}
+			if len(r.FormValue("updates")) > 0 {
+				UpdateFile()
+				var updates structs.Record
+				decoder := json.NewDecoder(strings.NewReader(r.FormValue("updates"))) //r.Body
+				err := decoder.Decode(&updates)
+				if err != nil {
+					panic(err)
 				}
 
-				fieldObj.Features = append(fieldObj.Features, i)
+				//var objId int
+				for k, i := range fieldObj.Features {
+					//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
+					//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
+					if int(i.Attributes[parentObjectID].(float64)) == objectid {
+						//i.Attributes["OBJECTID"]
+						fieldObj.Features[k].Attributes = updates[0].Attributes
+						//if edit, save username and timestamp
+						if config.Collector.Projects[name].Layers[id].EditFieldsInfo != nil {
+							//fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField] = config.Collector.Username
+							fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField] = config.Collector.Username
+							//fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreationDateField] = current_time.Unix() * 1000
+							fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditDateField] = current_time.Unix() * 1000
+						}
+
+						break
+					}
+				}
+
+				var jsonstr []byte
+				jsonstr, err = json.Marshal(fieldObj)
+				if err != nil {
+					log.Println(err)
+				}
+				err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
+				if err != nil {
+					log.Println(err1)
+				}
 				//write json back to file
 				result := map[string]interface{}{}
 				result["objectId"] = objectid
 				result["success"] = true
 				result["globalId"] = nil
 				results = append(results, result)
-				objectid++
-			}
+				response, _ = json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": results, "deleteResults": []string{}})
 
-			var jsonstr []byte
-			jsonstr, err = json.Marshal(fieldObj)
-			if err != nil {
-				log.Println(err)
-			}
-			err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
-			if err != nil {
-				log.Println(err1)
-			}
-
-			response, _ = json.Marshal(map[string]interface{}{"addResults": results, "updateResults": []string{}, "deleteResults": []string{}})
-		} else if len(r.FormValue("deletes")) > 0 {
-			//response = Deletes(name, id, tableName, r.FormValue("deletes"))
-			objectid, _ = strconv.Atoi(r.FormValue("deletes"))
-			if objectid == 0 {
-				return
-			}
-			for k, i := range fieldObj.Features {
-				if int(i.Attributes[parentObjectID].(float64)) == objectid {
-					//i.Attributes["OBJECTID"]
-					fieldObj.Features = append(fieldObj.Features[:k], fieldObj.Features[k+1:]...)
-					break
+				//response = Updates(name, id, tableName, r.FormValue("updates"))
+			} else if len(r.FormValue("adds")) > 0 {
+				//response = Adds(name, id, tableName, r.FormValue("adds"))
+				var adds []structs.Feature
+				decoder := json.NewDecoder(strings.NewReader(r.FormValue("adds"))) //r.Body
+				err := decoder.Decode(&adds)
+				if err != nil {
+					panic(err)
 				}
+				objectid = len(fieldObj.Features) + 1
+				for _, i := range adds {
+					//i.Attributes["objectId"] = objectid
+					i.Attributes[parentObjectID] = objectid
+					//i.Attributes["globalId"]=strings.ToUpper(i.Attributes["globalId"])
+					if len(i.Attributes[joinField].(string)) > 0 {
+						//input := strings.ToUpper(i.Attributes[joinField].(string))
+						//tmpStr := input[1 : len(input)-1]
+						i.Attributes[joinField] = strings.ToUpper(i.Attributes[joinField].(string))
+						i.Attributes[joinField] = strings.Replace(i.Attributes[joinField].(string), "{", "", -1)
+						i.Attributes[joinField] = strings.Replace(i.Attributes[joinField].(string), "}", "", -1)
+						//strings.ToUpper(i.Attributes[joinField].(string)).Replace("{", "").Replace("{", "")
+					}
+					//if edit, save username and timestamp
+					if config.Collector.Projects[name].Layers[id].EditFieldsInfo != nil {
+						i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField] = config.Collector.Username
+						i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField] = config.Collector.Username
+						i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreationDateField] = current_time.Unix() * 1000
+						i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditDateField] = current_time.Unix() * 1000
+					}
+
+					fieldObj.Features = append(fieldObj.Features, i)
+					//write json back to file
+					result := map[string]interface{}{}
+					result["objectId"] = objectid
+					result["success"] = true
+					result["globalId"] = nil
+					results = append(results, result)
+					objectid++
+				}
+
+				var jsonstr []byte
+				jsonstr, err = json.Marshal(fieldObj)
+				if err != nil {
+					log.Println(err)
+				}
+				err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
+				if err != nil {
+					log.Println(err1)
+				}
+
+				response, _ = json.Marshal(map[string]interface{}{"addResults": results, "updateResults": []string{}, "deleteResults": []string{}})
+			} else if len(r.FormValue("deletes")) > 0 {
+				//response = Deletes(name, id, tableName, r.FormValue("deletes"))
+				objectid, _ = strconv.Atoi(r.FormValue("deletes"))
+				if objectid == 0 {
+					return
+				}
+				for k, i := range fieldObj.Features {
+					if int(i.Attributes[parentObjectID].(float64)) == objectid {
+						//i.Attributes["OBJECTID"]
+						fieldObj.Features = append(fieldObj.Features[:k], fieldObj.Features[k+1:]...)
+						break
+					}
+				}
+				var jsonstr []byte
+				jsonstr, err = json.Marshal(fieldObj)
+				if err != nil {
+					log.Println(err)
+				}
+				err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
+				if err != nil {
+					log.Println(err1)
+				}
+				//write json back to file
+				result := map[string]interface{}{}
+				result["objectId"] = objectid
+				result["success"] = true
+				result["globalId"] = nil
+				results = append(results, result)
+				response, _ = json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": []string{}, "deleteResults": results})
 			}
-			var jsonstr []byte
-			jsonstr, err = json.Marshal(fieldObj)
-			if err != nil {
-				log.Println(err)
-			}
-			err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
-			if err != nil {
-				log.Println(err1)
-			}
-			//write json back to file
-			result := map[string]interface{}{}
-			result["objectId"] = objectid
-			result["success"] = true
-			result["globalId"] = nil
-			results = append(results, result)
-			response, _ = json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": []string{}, "deleteResults": results})
-		}
+		*/
 
 	} else {
-		var tableName = config.Collector.Projects[name].Layers[id].Data
-		var globalIdName = config.Collector.Projects[name].Layers[id].Globaloidname
 		//log.Println("Table name: " + tableName)
 		//var layerId = int(config.Services[name].Relationships[relationshipId]["dId"].(float64))
 

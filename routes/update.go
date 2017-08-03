@@ -2,7 +2,9 @@ package routes
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -470,4 +472,67 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		 	}
 	*/
 	//update json file with updates
+}
+func UpdatesFile(name string, id string, parentTableName string, updatesTxt string, joinField string, globalIdName string, parentObjectID string) []byte {
+	var updates structs.Record
+	decoder := json.NewDecoder(strings.NewReader(updatesTxt)) //r.Body
+	err := decoder.Decode(&updates)
+	if err != nil {
+		panic(err)
+	}
+	var objectid int
+	//var globalID string
+	var results []interface{}
+
+	var fieldObj structs.FeatureTable
+	current_time := time.Now().Local()
+
+	jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
+	//log.Println(jsonFile)
+	file, err1 := ioutil.ReadFile(jsonFile)
+	if err1 != nil {
+		log.Println(err1)
+	}
+	err = json.Unmarshal(file, &fieldObj)
+	if err != nil {
+		log.Println("Error unmarshalling fields into features object: " + string(file))
+		log.Println(err.Error())
+	}
+
+	//var objId int
+	for k, i := range fieldObj.Features {
+		//if fieldObj.Features[i].Attributes["OBJECTID"] == objectid {
+		//log.Printf("%v:%v", i.Attributes["OBJECTID"].(float64), strconv.Itoa(objectid))
+		if int(i.Attributes[parentObjectID].(float64)) == objectid {
+			//i.Attributes["OBJECTID"]
+			fieldObj.Features[k].Attributes = updates[0].Attributes
+			//if edit, save username and timestamp
+			if config.Collector.Projects[name].Layers[id].EditFieldsInfo != nil {
+				//fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField] = config.Collector.Username
+				fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField] = config.Collector.Username
+				//fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreationDateField] = current_time.Unix() * 1000
+				fieldObj.Features[k].Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditDateField] = current_time.Unix() * 1000
+			}
+
+			break
+		}
+	}
+
+	var jsonstr []byte
+	jsonstr, err = json.Marshal(fieldObj)
+	if err != nil {
+		log.Println(err)
+	}
+	err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
+	if err != nil {
+		log.Println(err1)
+	}
+	//write json back to file
+	result := map[string]interface{}{}
+	result["objectId"] = objectid
+	result["success"] = true
+	result["globalId"] = nil
+	results = append(results, result)
+	response, _ := json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": results, "deleteResults": []string{}})
+	return response
 }

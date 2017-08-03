@@ -159,9 +159,13 @@ type Record []struct {
 }
 
 type Geometry struct {
-	Rings [][][]float64 `json:"rings,omitempty"`
-	Y     float64       `json:"y,omitempty"`
-	X     float64       `json:"x,omitempty"`
+	Rings            [][][]float64 `json:"rings,omitempty"`
+	Y                float64       `json:"y,omitempty"`
+	X                float64       `json:"x,omitempty"`
+	SpatialReference *struct {
+		Wkid       *int `json:"wkid,omitempty"`
+		LatestWkid *int `json:"latestWkid,omitempty"`
+	} `json:"spatialReference,omitempty"`
 }
 
 type Feature struct {

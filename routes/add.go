@@ -2,7 +2,9 @@ package routes
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -165,6 +167,20 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creationDateField"]=
 				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["editDateField"]
 			*/
+			/*
+				if i.Geometry != nil {
+					var geometry string
+					cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+					vals = append(vals, geometry)
+					p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
+					i.Attributes["creatorField"] = config.Collector.Username
+					c++
+				}
+			*/
+			//for key, j := range i.Geometry {
+			//ST_Polygon('polygon ((52 28, 58 28, 58 23, 52 23, 52 28))', 4326)
+			//ST_Point('point (52 24)', 4326)
+			//}
 
 		}
 
@@ -282,6 +298,77 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		results = append(results, result)
 		objectid++
 	}
+	response, _ := json.Marshal(map[string]interface{}{"addResults": results, "updateResults": []string{}, "deleteResults": []string{}})
+	return response
+}
+
+func AddsFile(name string, id string, parentTableName string, addsTxt string, joinField string, globalIdName string, parentObjectID string) []byte {
+	current_time := time.Now().Local()
+	jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
+	//log.Println(jsonFile)
+	file, err1 := ioutil.ReadFile(jsonFile)
+	if err1 != nil {
+		log.Println(err1)
+	}
+	var objectid int
+	//var globalID string
+	var results []interface{}
+
+	var fieldObj structs.FeatureTable
+	//map[string]map[string]map[string]
+	err := json.Unmarshal(file, &fieldObj)
+	if err != nil {
+		log.Println("Error unmarshalling fields into features object: " + string(file))
+		log.Println(err.Error())
+	}
+
+	var adds []structs.Feature
+	decoder := json.NewDecoder(strings.NewReader(addsTxt)) //r.Body
+	err = decoder.Decode(&adds)
+	if err != nil {
+		panic(err)
+	}
+	objectid = len(fieldObj.Features) + 1
+	for _, i := range adds {
+		//i.Attributes["objectId"] = objectid
+		i.Attributes[parentObjectID] = objectid
+		//i.Attributes["globalId"]=strings.ToUpper(i.Attributes["globalId"])
+		if len(i.Attributes[joinField].(string)) > 0 {
+			//input := strings.ToUpper(i.Attributes[joinField].(string))
+			//tmpStr := input[1 : len(input)-1]
+			i.Attributes[joinField] = strings.ToUpper(i.Attributes[joinField].(string))
+			i.Attributes[joinField] = strings.Replace(i.Attributes[joinField].(string), "{", "", -1)
+			i.Attributes[joinField] = strings.Replace(i.Attributes[joinField].(string), "}", "", -1)
+			//strings.ToUpper(i.Attributes[joinField].(string)).Replace("{", "").Replace("{", "")
+		}
+		//if edit, save username and timestamp
+		if config.Collector.Projects[name].Layers[id].EditFieldsInfo != nil {
+			i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField] = config.Collector.Username
+			i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditorField] = config.Collector.Username
+			i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreationDateField] = current_time.Unix() * 1000
+			i.Attributes[config.Collector.Projects[name].Layers[id].EditFieldsInfo.EditDateField] = current_time.Unix() * 1000
+		}
+
+		fieldObj.Features = append(fieldObj.Features, i)
+		//write json back to file
+		result := map[string]interface{}{}
+		result["objectId"] = objectid
+		result["success"] = true
+		result["globalId"] = nil
+		results = append(results, result)
+		objectid++
+	}
+
+	var jsonstr []byte
+	jsonstr, err = json.Marshal(fieldObj)
+	if err != nil {
+		log.Println(err)
+	}
+	err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
+	if err != nil {
+		log.Println(err1)
+	}
+
 	response, _ := json.Marshal(map[string]interface{}{"addResults": results, "updateResults": []string{}, "deleteResults": []string{}})
 	return response
 }

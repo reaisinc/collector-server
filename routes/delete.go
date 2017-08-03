@@ -2,11 +2,13 @@ package routes
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 
-	structs "github.com/traderboy/collector-server/structs"
 	config "github.com/traderboy/collector-server/config"
+	structs "github.com/traderboy/collector-server/structs"
 )
 
 func Deletes(name string, id string, parentTableName string, tableName string, deletesTxt string, globalIdName string, parentObjectID string) []byte {
@@ -127,6 +129,57 @@ func Deletes(name string, id string, parentTableName string, tableName string, d
 		stmt.Close()
 		//sql = "update services set json=jsonb_set(json,'{features," + strconv.Itoa(rowId) + ",attributes}',$1::jsonb,false) where type='query' and layerId=$2"
 	}
+	response, _ := json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": []string{}, "deleteResults": results})
+	return response
+
+}
+
+func DeletesFile(name string, id string, parentTableName string, deletesTxt string, globalIdName string, parentObjectID string) []byte {
+
+	jsonFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
+	//log.Println(jsonFile)
+	file, err1 := ioutil.ReadFile(jsonFile)
+	if err1 != nil {
+		log.Println(err1)
+	}
+	var objectid int
+	//var globalID string
+	var results []interface{}
+
+	var fieldObj structs.FeatureTable
+	//map[string]map[string]map[string]
+	err := json.Unmarshal(file, &fieldObj)
+	if err != nil {
+		log.Println("Error unmarshalling fields into features object: " + string(file))
+		log.Println(err.Error())
+	}
+
+	objectid, _ = strconv.Atoi(deletesTxt)
+	if objectid == 0 {
+		return []byte("")
+	}
+	for k, i := range fieldObj.Features {
+		if int(i.Attributes[parentObjectID].(float64)) == objectid {
+			//i.Attributes["OBJECTID"]
+			fieldObj.Features = append(fieldObj.Features[:k], fieldObj.Features[k+1:]...)
+			break
+		}
+	}
+	var jsonstr []byte
+	jsonstr, err = json.Marshal(fieldObj)
+	if err != nil {
+		log.Println(err)
+	}
+	err = ioutil.WriteFile(jsonFile, jsonstr, 0644)
+	if err != nil {
+		log.Println(err1)
+	}
+	//write json back to file
+	result := map[string]interface{}{}
+	result["objectId"] = objectid
+	result["success"] = true
+	result["globalId"] = nil
+	results = append(results, result)
 	response, _ := json.Marshal(map[string]interface{}{"addResults": []string{}, "updateResults": []string{}, "deleteResults": results})
 	return response
 

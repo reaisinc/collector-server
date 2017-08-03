@@ -87,6 +87,7 @@ func Initialize() {
 	Pem = ""
 	HTTPPort = ""
 	HTTPSPort = ""
+	var DataSource = ""
 
 	//var err error
 	//pwd, err := os.Getwd()
@@ -158,6 +159,9 @@ func Initialize() {
 					DbSource = FILE
 					//LoadConfigurationFromFile()
 			*/
+			if os.Args[i] == "-file" {
+				DataSource = structs.FILE
+			}
 			if os.Args[i] == "-p" && len(os.Args) > i+1 {
 				HTTPPort = ":" + os.Args[i+1]
 			} else if os.Args[i] == "-https" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
@@ -309,6 +313,9 @@ func Initialize() {
 
 	LoadConfigurationFromFile(DataPath)
 	//Collector.DataPath = DataPath
+	if len(DataSource) > 0 {
+		Collector.DefaultDataSource = DataSource
+	}
 
 	//override any settings from config file
 	if len(Collector.HttpPort) == 1 {
@@ -587,20 +594,23 @@ func PrintServerSummary() {
 	log.Printf("Cert: %v\n", Collector.Pem)
 	log.Printf("Pem: %v\n", Collector.Cert)
 	log.Printf("Sqlite configuration DB %v\n", Collector.SqliteDb)
+	for key, _ := range Collector.Projects {
+		log.Printf("Loading project:  %v\n", key)
+		//log.Printf("%v %v\n", key, val.DataPath)
+		//log.Printf("%v %v\n", key, val.FGDB)
+		//log.Printf("%v %v\n", key, val.ReplicaPath)
+
+	}
 	if Collector.DefaultDataSource == structs.PGSQL {
-		log.Println("Postgresql database: " + Collector.PG)
+		log.Println("Using Postgresql database: " + Collector.PG)
 
 	} else if Collector.DefaultDataSource == structs.SQLITE3 {
+		log.Println("Using SQLITE replica database ")
 
 	} else if Collector.DefaultDataSource == structs.FILE {
+		log.Println("Using File based database")
 	}
-	for key, val := range Collector.Projects {
-		log.Printf("%v %v\n", key, val.Name)
-		log.Printf("%v %v\n", key, val.DataPath)
-		log.Printf("%v %v\n", key, val.FGDB)
-		log.Printf("%v %v\n", key, val.ReplicaPath)
 
-	}
 }
 
 func PrintServerSummaryTable(w http.ResponseWriter) {
