@@ -106,7 +106,7 @@ func StartGorillaMux() *mux.Router {
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}", id).Methods("GET", "POST", "PUT")
 
 	//Attachments
-	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/attachments", attachments).Methods("GET")
+	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/attachments", attachment).Methods("GET")
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/attachments/{img}", attachments_img).Methods("GET")
 	/**
 	Add attachments.
@@ -115,7 +115,7 @@ func StartGorillaMux() *mux.Router {
 	*/
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/addAttachment", addAttachment).Methods("GET", "POST")
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/updateAttachment", updateAttachment).Methods("POST")
-	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/deleteAttachments", deleteAttachments).Methods("POST")
+	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/{id}/{row}/deleteAttachments", deleteAttachment).Methods("POST")
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/db/{id}", db_id).Methods("GET", "POST", "PUT")
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/xml/{id}", xml_id).Methods("GET", "POST", "PUT")
 	r.HandleFunc("/arcgis/rest/services/{name}/FeatureServer/table/{id}", table_id).Methods("GET", "POST")

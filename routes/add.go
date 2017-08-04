@@ -180,6 +180,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			//for key, j := range i.Geometry {
 			//ST_Polygon('polygon ((52 28, 58 28, 58 23, 52 23, 52 28))', 4326)
 			//ST_Point('point (52 24)', 4326)
+			//
 			//}
 
 		}
