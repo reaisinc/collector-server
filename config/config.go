@@ -335,6 +335,14 @@ func Initialize() {
 	if len(Cert) > 0 {
 		Collector.Cert = Cert
 	}
+	//overwrite if using openshift 2
+	if len(os.Getenv("OPENSHIFT_GO_IP")) > 0 {
+		Collector.Hostname = os.Getenv("OPENSHIFT_GO_IP")
+	}
+	if len(os.Getenv("OPENSHIFT_GO_PORT")) > 0 {
+		Collector.HttpPort = os.Getenv("OPENSHIFT_GO_PORT")
+	}
+
 	var err error
 	if Collector.DefaultDataSource != structs.FILE {
 		//connect to configuration sqlite database
