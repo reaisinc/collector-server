@@ -40,7 +40,8 @@ func main() {
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 	fmt.Println("Public URL: " + config.Collector.Hostname)
 	//bind := fmt.Sprintf("%s:%s", os.Getenv("OPENSHIFT_GO_IP"), os.Getenv("OPENSHIFT_GO_PORT"))
-	bind := fmt.Sprintf("%s:%s", config.Collector.Hostname, config.Collector.HttpPort)
+	//bind := fmt.Sprintf("%s%s", config.Collector.Hostname, config.Collector.HttpPort)
+	//log.Println(bind)
 
 	//  Start HTTP
 	go func() {
@@ -57,7 +58,7 @@ func main() {
 	}()
 	// Apply the CORS middleware to our top-level router, with the defaults.
 	//err1 := http.ListenAndServe(config.Collector.HttpPort, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
-	err1 := http.ListenAndServe(bind, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
+	err1 := http.ListenAndServe(config.Collector.HttpPort, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
 	if err1 != nil {
 		//log.Println("HTTP server not started on port " + config.Collector.HttpPort)
 		log.Fatal("Unable to start HTTP server: ", err1)

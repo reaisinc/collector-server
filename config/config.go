@@ -312,18 +312,19 @@ func Initialize() {
 	*/
 
 	LoadConfigurationFromFile(DataPath)
+
 	//Collector.DataPath = DataPath
 	if len(DataSource) > 0 {
 		Collector.DefaultDataSource = DataSource
 	}
 
 	//override any settings from config file
-	if len(Collector.HttpPort) == 1 {
+	if len(Collector.HttpPort) == 0 {
 		Collector.HttpPort = ":80"
 	} else {
 		Collector.HttpPort = ":" + Collector.HttpPort
 	}
-	if len(Collector.HttpsPort) == 1 {
+	if len(Collector.HttpsPort) == 0 {
 		Collector.HttpsPort = ":443"
 	} else {
 		Collector.HttpsPort = ":" + Collector.HttpsPort
@@ -335,12 +336,18 @@ func Initialize() {
 	if len(Cert) > 0 {
 		Collector.Cert = Cert
 	}
+	if len(HTTPPort) > 0 {
+		Collector.HttpPort = ":" + HTTPPort
+	}
+	if len(HTTPSPort) > 0 {
+		Collector.HttpsPort = ":" + HTTPSPort
+	}
 	//overwrite if using openshift 2
 	if len(os.Getenv("OPENSHIFT_GO_IP")) > 0 {
 		Collector.Hostname = os.Getenv("OPENSHIFT_GO_IP")
 	}
 	if len(os.Getenv("OPENSHIFT_GO_PORT")) > 0 {
-		Collector.HttpPort = os.Getenv("OPENSHIFT_GO_PORT")
+		Collector.HttpPort = os.Getenv("OPENSHIFT_GO_IP") + ":" + os.Getenv("OPENSHIFT_GO_PORT")
 	}
 
 	var err error
