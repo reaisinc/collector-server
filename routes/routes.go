@@ -46,10 +46,13 @@ func StartGorillaMux() *mux.Router {
 	r.HandleFunc("/sharing/generateToken", sharing_generateToken).Methods("GET", "POST")
 
 	r.HandleFunc("//sharing/oauth2/authorize", sharing_authorize).Methods("GET")
+	r.HandleFunc("/sharing/oauth2/authorize", sharing_authorize).Methods("GET")
 	r.HandleFunc("/sharing/oauth2/authorize_v1", sharing_authorize).Methods("GET")
 	r.HandleFunc("/sharing/oauth2/approval", sharing_approval).Methods("GET")
 	r.HandleFunc("/sharing/oauth2/signin", sharing_signin).Methods("GET")
 	r.HandleFunc("/sharing/oauth2/token", sharing_token).Methods("GET", "POST")
+	r.HandleFunc("/sharing/oauth2/token", sharing_token).Methods("GET", "POST")
+
 	r.HandleFunc("/sharing/rest/tokens", sharing_tokens).Methods("GET", "POST")
 	/*
 	   openssl req -x509 -nodes -days 365 -newkey rsa:1024 \
