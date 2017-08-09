@@ -49,12 +49,12 @@ func StartGorillaMux() *mux.Router {
 			sharing_authorize(w, r)
 		}).Methods("GET")
 	*/
-	r.HandleFunc("/sharing/oauth2/authorize", sharing_authorize).Methods("GET")
-	r.HandleFunc("//sharing/oauth2/authorize", sharing_authorize).Methods("GET")
+	r.HandleFunc("/sharing/oauth2/authorize", sharing_authorize).Methods("GET", "POST")
+	r.HandleFunc("//sharing/oauth2/authorize", sharing_authorize).Methods("GET", "POST")
 
-	r.HandleFunc("/sharing/oauth2/authorize_v1", sharing_authorize).Methods("GET")
-	r.HandleFunc("/sharing/oauth2/approval", sharing_approval).Methods("GET")
-	r.HandleFunc("/sharing/oauth2/signin", sharing_signin).Methods("GET")
+	r.HandleFunc("/sharing/oauth2/authorize_v1", sharing_authorize).Methods("GET", "POST")
+	r.HandleFunc("/sharing/oauth2/approval", sharing_approval).Methods("GET", "POST")
+	r.HandleFunc("/sharing/oauth2/signin", sharing_signin).Methods("GET", "POST")
 	r.HandleFunc("/sharing/oauth2/token", sharing_token).Methods("GET", "POST")
 	r.HandleFunc("/sharing/oauth2/token", sharing_token).Methods("GET", "POST")
 
