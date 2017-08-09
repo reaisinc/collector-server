@@ -15,8 +15,9 @@ import (
 
 func sharing_info(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/rest/info")
-	response, _ := json.Marshal(map[string]interface{}{"owningSystemUrl": "http://" + config.Server,
+	response, _ := json.Marshal(map[string]interface{}{"owningSystemUrl": "http://" + config.Collector.Hostname, //config.Server,
 		"authInfo": map[string]interface{}{"tokenServicesUrl": "https://" + config.Collector.Hostname + "/sharing/rest/generateToken", "isTokenBasedSecurity": true}})
+	//{"owningSystemUrl":"http://www.arcgis.com","authInfo":{"tokenServicesUrl":"https://www.arcgis.com/sharing/rest/generateToken","isTokenBasedSecurity":true}}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 }
