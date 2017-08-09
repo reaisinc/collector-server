@@ -312,6 +312,11 @@ func Initialize() {
 	*/
 
 	LoadConfigurationFromFile(DataPath)
+	if !strings.HasSuffix(Collector.DataPath, "catalogs") {
+		Collector.DataPath += "/catalogs"
+	}
+
+	//Collector.DataPath = DataPath
 
 	//Collector.DataPath = DataPath
 	if len(DataSource) > 0 {
@@ -604,6 +609,7 @@ func Initialize() {
 	PrintServerSummary()
 }
 func PrintServerSummary() {
+	log.Printf("Catalog path: %v\n", Collector.DataPath)
 	log.Printf("HTTP Port: %v\n", Collector.HttpPort)
 	log.Printf("HTTPS Port: %v\n", Collector.HttpsPort)
 	log.Printf("Cert: %v\n", Collector.Pem)
@@ -727,7 +733,7 @@ func LoadConfiguration() {
 		log.Println(err.Error())
 	}
 	var str []byte
-	err = stmt.QueryRow("config").Scan(&str)
+	if err = stmt.QueryRow("config")
 	if err != nil {
 		log.Println("Error reading configuration table")
 		log.Println(err.Error())
