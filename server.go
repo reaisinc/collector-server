@@ -48,7 +48,7 @@ func main() {
 		if len(config.Collector.Cert) > 0 && len(config.Collector.Pem) > 0 {
 			err := http.ListenAndServeTLS(config.Collector.HttpsPort, config.Collector.Cert, config.Collector.Pem, handlers.CORS(originsOk, headersOk, methodsOk)(r)) //handlers.CORS()(r))
 			if err != nil {
-				log.Fatal("Unable to start HTTPS server: ", err)
+				log.Println("Unable to start HTTPS server: ", err)
 			} else {
 				log.Println("Started HTTPS server on port " + config.Collector.HttpsPort)
 			}
