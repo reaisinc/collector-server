@@ -348,9 +348,9 @@ func Initialize() {
 		Collector.HttpsPort = ":" + HTTPSPort
 	}
 	//overwrite if using openshift 2
-	if len(os.Getenv("OPENSHIFT_GO_IP")) > 0 {
-		Collector.Hostname = os.Getenv("OPENSHIFT_GO_IP")
-	}
+	//if len(os.Getenv("OPENSHIFT_GO_IP")) > 0 {
+	//	Collector.Hostname = os.Getenv("OPENSHIFT_GO_IP")
+	//}
 	if len(os.Getenv("OPENSHIFT_GO_PORT")) > 0 {
 		Collector.HttpPort = os.Getenv("OPENSHIFT_GO_IP") + ":" + os.Getenv("OPENSHIFT_GO_PORT")
 	}

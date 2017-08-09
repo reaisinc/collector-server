@@ -80,7 +80,7 @@ func sharing_generateToken1(w http.ResponseWriter, r *http.Request) {
 
 }
 func sharing_authorize(w http.ResponseWriter, r *http.Request) {
-	log.Println("//sharing/oauth2/authorize (" + r.Method + ")")
+	log.Println("/sharing/oauth2/authorize (" + r.Method + ")")
 	//log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "oauth2.html")
 	//http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"oauth2.html")
 	http.Redirect(w, r, "/sharing/rest?f=json&culture=en-US&code=KIV31WkDhY6XIWXmWAc6U", http.StatusMovedPermanently)
