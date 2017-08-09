@@ -81,8 +81,9 @@ func sharing_generateToken1(w http.ResponseWriter, r *http.Request) {
 }
 func sharing_authorize(w http.ResponseWriter, r *http.Request) {
 	log.Println("//sharing/oauth2/authorize (" + r.Method + ")")
-	log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "oauth2.html")
-	http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"oauth2.html")
+	//log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "oauth2.html")
+	//http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"oauth2.html")
+	http.Redirect(w, r, "/sharing/rest?f=json&culture=en-US&code=KIV31WkDhY6XIWXmWAc6U", http.StatusMovedPermanently)
 }
 func sharing_authorize_v1(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/authorize (" + r.Method + ")")
@@ -112,8 +113,9 @@ func sharing_approval(w http.ResponseWriter, r *http.Request) {
 }
 func sharing_signin(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/signin (" + r.Method + ")")
-	log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "search.json")
-	http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"search.json")
+	sharing_search(w, r)
+	//log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "search.json")
+	//http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"search.json")
 }
 func sharing_token(w http.ResponseWriter, r *http.Request) {
 	log.Println("/sharing/oauth2/token (" + r.Method + ")")
