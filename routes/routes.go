@@ -44,7 +44,11 @@ func StartGorillaMux() *mux.Router {
 	//authentication.  Uses phoney tokens
 	r.HandleFunc("/sharing/{rest}/generateToken", sharing_generateToken).Methods("GET", "POST")
 	r.HandleFunc("/sharing/generateToken", sharing_generateToken).Methods("GET", "POST")
-
+	/*
+		r.HandleFunc("/sharing/oauth2/authorize", func(w http.ResponseWriter, r *http.Request) {
+			sharing_authorize(w, r)
+		}).Methods("GET")
+	*/
 	r.HandleFunc("/sharing/oauth2/authorize", sharing_authorize).Methods("GET")
 	r.HandleFunc("//sharing/oauth2/authorize", sharing_authorize).Methods("GET")
 

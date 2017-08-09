@@ -45,7 +45,7 @@ func sharing_generateToken(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	rest := vars["rest"]
 
-	log.Println("/sharing/" + rest + "/generateToken")
+	log.Println("/sharing/" + rest + "/generateToken (" + r.Method + ")")
 	/*
 		tok := esritoken{
 			Token:   "hbKgXcKhu_t6oTuiMOxycWn_ELCZ5G5OEwMPkBzbiCrrQdClpi531MbGo0P_HsukvhoIP8uzecIwpD8zoCaZoy1POpEUDwtNXLf-K6n913cayKDVD6wsePmgzYSNoogp",
@@ -62,7 +62,7 @@ func sharing_generateToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func sharing_generateToken1(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/generateToken (post)")
+	log.Println("/sharing/generateToken (" + r.Method + ")")
 	//response, _ := json.Marshal([]string{"token": "hbKgXcKhu_t6oTuiMOxycWn_ELCZ5G5OEwMPkBzbiCrrQdClpi531MbGo0P_HsukvhoIP8uzecIwpD8zoCaZoy1POpEUDwtNXLf-K6n913cayKDVD6wsePmgzYSNoogp", "expires": 1940173783033, "ssl": false}
 	/*
 		tok := esritoken{
@@ -80,19 +80,19 @@ func sharing_generateToken1(w http.ResponseWriter, r *http.Request) {
 
 }
 func sharing_authorize(w http.ResponseWriter, r *http.Request) {
-	log.Println("//sharing/oauth2/authorize")
+	log.Println("//sharing/oauth2/authorize (" + r.Method + ")")
 	log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "oauth2.html")
 	http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"oauth2.html")
 }
 func sharing_authorize_v1(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/oauth2/authorize")
+	log.Println("/sharing/oauth2/authorize (" + r.Method + ")")
 	http.Redirect(w, r, "/sharing/rest?f=json&culture=en-US&code=KIV31WkDhY6XIWXmWAc6U", http.StatusMovedPermanently)
 	//302
 	//c.Redirect(http.StatusMovedPermanently, "/sharing/rest?f=json&culture=en-US&code=KIV31WkDhY6XIWXmWAc6U")
 	//http.ServeFile(w, r, config.Collector.DataPath + "/oauth2.html");
 }
 func sharing_approval(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/oauth2/approval")
+	log.Println("/sharing/oauth2/approval (" + r.Method + ")")
 	/*
 		tok := esritoken{
 			Token:   "hbKgXcKhu_t6oTuiMOxycWn_ELCZ5G5OEwMPkBzbiCrrQdClpi531MbGo0P_HsukvhoIP8uzecIwpD8zoCaZoy1POpEUDwtNXLf-K6n913cayKDVD6wsePmgzYSNoogp",
@@ -111,12 +111,12 @@ func sharing_approval(w http.ResponseWriter, r *http.Request) {
 	//w.Write( response)
 }
 func sharing_signin(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/oauth2/signin")
+	log.Println("/sharing/oauth2/signin (" + r.Method + ")")
 	log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + "search.json")
 	http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+"search.json")
 }
 func sharing_token(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/oauth2/token")
+	log.Println("/sharing/oauth2/token (" + r.Method + ")")
 
 	var expires int64 = 99800
 	response, _ := json.Marshal(map[string]interface{}{"access_token": config.AccessToken, "expires_in": expires, "username": "gisuser", "refresh_token": config.RefreshToken})
@@ -124,7 +124,7 @@ func sharing_token(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 func sharing_tokens(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/rest/tokens")
+	log.Println("/sharing/rest/tokens (" + r.Method + ")")
 	response, _ := json.Marshal(map[string]interface{}{"token": "1.0"})
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
@@ -211,7 +211,7 @@ func sharing_content_users(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
 
-	log.Println("/sharing/rest/content/users/" + user)
+	log.Println("/sharing/rest/content/users/" + user + " (" + r.Method + ")")
 	//response, _ := json.Marshal([]string{ "username"{user}"),"total":0,"start":1,"num":0,"nextStart":-1,"currentFolder":nil,"items":[],"folders":[] }
 	//folders := make([]int64], 0)
 	//folders := make([]string], 0)
@@ -343,7 +343,7 @@ func sharing_search(w http.ResponseWriter, r *http.Request) {
 func sharing_community_users_notifications(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
-	log.Println("/sharing/rest/community/users/" + user + "/notifications")
+	log.Println("/sharing/rest/community/users/" + user + "/notifications (" + r.Method + ")")
 	response, _ := json.Marshal(map[string]interface{}{"notifications": []string{}})
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
@@ -437,7 +437,7 @@ func sharing_community_users_user_info(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
 	img := vars["img"]
-	log.Println("/sharing/rest/community/users/" + user + "/info/" + img)
+	log.Println("/sharing/rest/community/users/" + user + "/info/" + img + " (" + r.Method + ")")
 
 	var path = "photos/cat.jpg"
 	log.Println("Sending: " + path)
@@ -448,7 +448,7 @@ func sharing_community_users_user_info(w http.ResponseWriter, r *http.Request) {
 
 }
 func sharing_community_groups(w http.ResponseWriter, r *http.Request) {
-	log.Println("/sharing/rest/community/groups")
+	log.Println("/sharing/rest/community/groups (" + r.Method + ")")
 
 	response := config.GetArcCatalog("community", "groups", "")
 	if len(response) > 0 {
@@ -491,7 +491,7 @@ func sharing_content_items_info_thumbnail_v1(w http.ResponseWriter, r *http.Requ
 	id = config.ServiceName
 	//log.Println("New name:  " + id)
 
-	log.Println("/sharing/rest/content/items/" + id + "/info/thumbnail/ago_downloaded.png")
+	log.Println("/sharing/rest/content/items/" + id + "/info/thumbnail/ago_downloaded.png (" + r.Method + ")")
 	response, _ := json.Marshal(map[string]interface{}{"currentVersion": config.Collector.ArcGisVersion})
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
