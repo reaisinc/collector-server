@@ -5,6 +5,7 @@
 #   docker stop collector-server;docker rm collector-server;docker build -t traderboy/collector-server -f docker/Dockerfile .;docker run -d -p 80:80 -p 443:443 -e HTTPS_PORT=443 -e HTTP_PORT=80 -e ROOT_PATH=catalogs -e DB_SOURCE=PGSQL -e DB_NAME="user=postgres dbname=gis host=172.17.0.5" --name collector-server traderboy/collector-server;docker logs collector-server -f
 #   docker build –t traderboy/collector-server -f docker/Dockerfile .
 #   docker rm collector-server
+#   docker run -d -p 80:80 -p 443:443 -e HTTPS_PORT=443 -e HTTP_PORT=80 --name collector-server traderboy/collector-server
 #   docker run -d -p 80:8000 --name collector-server --link db:postgres traderboy/collector-server
 #   docker logs collector-server
 #   docker rm collector-server
@@ -13,8 +14,6 @@ FROM golang:1.7
 #RUN mkdir /app
 #RUN mkdir /usr/local/go/src/github.com/traderboy
 RUN mkdir -p /usr/local/go/src/github.com/traderboy/collector-server
-RUN git clone https://github.com/traderboy/collector-sample-data.git /usr/local/go/src/github.com/traderboy/collector-server
-
 RUN go get github.com/gorilla/handlers
 RUN go get github.com/lib/pq
 RUN go get github.com/gorilla/mux
@@ -44,7 +43,6 @@ RUN chmod -R 775 /usr/local/go/src/github.com/traderboy/collector-server/dist
 #RUN ls -l /usr/local/go/src/github.com/traderboy/collector-server
 #RUN ls -l /usr/local/go/src/github.com/traderboy/collector-server/config
 
-
 WORKDIR /usr/local/go/src/github.com/traderboy/collector-server
 # Build the outyet command inside the container.
 # (You may fetch or manage dependencies here,
@@ -55,7 +53,7 @@ RUN go build /usr/local/go/src/github.com/traderboy/collector-server/server.go
 #CMD ["./server","-root catalogs","-file"]
 #CMD ["./server","-root","catalogs","-sqlite","collector-server.sqlite"]
 #CMD ["./server","-root","catalogs","-pgsql","user=postgres dbname=gis host=172.17.0.5"]
-CMD ["./server","-data","`pwd`/catalogs","-host","192.168.99.100"]
+CMD ["./server"]
 
 #ADD myapp /app/
 #ENTRYPOINT ["./server"]

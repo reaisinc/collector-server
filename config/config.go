@@ -43,10 +43,6 @@ var SqlWalFlags = "?PRAGMA journal_mode=WAL"
 
 //leasecompliance2016
 var ServiceName string
-var HTTPPort string  // = ":80"
-var HTTPSPort string //= ":443"
-var Pem string
-var Cert string
 var UUID = ""
 
 //"github.com/gin-gonic/gin"
@@ -83,10 +79,11 @@ func Initialize() {
 	//clear out variables in case Initialize is run again
 
 	//DbName = ""
-	Cert = ""
-	Pem = ""
-	HTTPPort = ""
-	HTTPSPort = ""
+	var HTTPPort string  // = ":80"
+	var HTTPSPort string //= ":443"
+	var Pem string
+	var Cert string
+	var HostName string
 	var DataSource = ""
 
 	//var err error
@@ -106,11 +103,11 @@ func Initialize() {
 	//}
 	//for docker, environment variables override command line parameters?
 	if len(os.Getenv("HTTP_PORT")) > 0 {
-		HTTPPort = ":" + os.Getenv("HTTP_PORT") //80
+		HTTPPort = os.Getenv("HTTP_PORT") //80
 	}
 
 	if len(os.Getenv("HTTPS_PORT")) > 0 {
-		HTTPSPort = ":" + os.Getenv("HTTPS_PORT") //443
+		HTTPSPort = os.Getenv("HTTPS_PORT") //443
 	}
 
 	if len(os.Getenv("PEM_PATH")) > 0 {
@@ -163,13 +160,15 @@ func Initialize() {
 				DataSource = structs.FILE
 			}
 			if os.Args[i] == "-p" && len(os.Args) > i+1 {
-				HTTPPort = ":" + os.Args[i+1]
+				HTTPPort = os.Args[i+1]
 			} else if os.Args[i] == "-https" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
-				HTTPSPort = ":" + os.Args[i+1]
+				HTTPSPort = os.Args[i+1]
 			} else if os.Args[i] == "-pem" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
 				Pem = os.Args[i+1]
 			} else if os.Args[i] == "-cert" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
 				Cert = os.Args[i+1]
+			} else if os.Args[i] == "-host" && len(os.Args) > i && len(os.Args[i+1]) > 0 {
+				HostName = os.Args[i+1]
 			} else if os.Args[i] == "-data" {
 				if len(os.Args) > i+1 && os.Args[i+1][0] != 45 {
 					DataPath, _ = filepath.Abs(os.Args[i+1])
@@ -312,11 +311,16 @@ func Initialize() {
 	*/
 
 	LoadConfigurationFromFile(DataPath)
-	if !strings.HasSuffix(Collector.DataPath, "catalogs") {
-		Collector.DataPath += "/catalogs"
+	//make sure the datapath exists
+	if _, err := os.Stat(Collector.DataPath + string(os.PathSeparator) + "config.json"); os.IsNotExist(err) {
+		Collector.DataPath = DataPath
 	}
 
-	//Collector.DataPath = DataPath
+	/*
+		if !strings.HasSuffix(Collector.DataPath, "catalogs") {
+			Collector.DataPath += "/catalogs"
+		}
+	*/
 
 	//Collector.DataPath = DataPath
 	if len(DataSource) > 0 {
@@ -324,15 +328,20 @@ func Initialize() {
 	}
 
 	//override any settings from config file
-	if len(Collector.HttpPort) == 0 {
-		Collector.HttpPort = ":80"
-	} else {
-		Collector.HttpPort = ":" + Collector.HttpPort
-	}
-	if len(Collector.HttpsPort) == 0 {
+	if len(HTTPSPort) > 0 {
+		Collector.HttpsPort = ":" + HTTPSPort
+	} else if len(Collector.HttpsPort) == 0 {
 		Collector.HttpsPort = ":443"
-	} else {
+	} else if Collector.HttpsPort[:1] != ":" {
 		Collector.HttpsPort = ":" + Collector.HttpsPort
+	}
+
+	if len(HTTPPort) > 0 {
+		Collector.HttpPort = ":" + HTTPPort
+	} else if len(Collector.HttpPort) == 0 {
+		Collector.HttpPort = ":80"
+	} else if Collector.HttpPort[:1] != ":" {
+		Collector.HttpPort = ":" + Collector.HttpPort
 	}
 
 	if len(Pem) > 0 {
@@ -341,11 +350,8 @@ func Initialize() {
 	if len(Cert) > 0 {
 		Collector.Cert = Cert
 	}
-	if len(HTTPPort) > 0 {
-		Collector.HttpPort = ":" + HTTPPort
-	}
-	if len(HTTPSPort) > 0 {
-		Collector.HttpsPort = ":" + HTTPSPort
+	if len(HostName) > 0 {
+		Collector.Hostname = HostName
 	}
 	//overwrite if using openshift 2
 	//if len(os.Getenv("OPENSHIFT_GO_IP")) > 0 {
@@ -357,6 +363,11 @@ func Initialize() {
 
 	var err error
 	if Collector.DefaultDataSource != structs.FILE {
+		//make sure paths in config exist
+		if _, err := os.Stat(Collector.SqliteDb); os.IsNotExist(err) {
+			Collector.SqliteDb = Collector.DataPath + string(os.PathSeparator) + "collectorDb.sqlite"
+		}
+
 		//connect to configuration sqlite database
 		Collector.Configuration, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
 		if err != nil {
@@ -608,6 +619,7 @@ func Initialize() {
 	//print out summary
 	PrintServerSummary()
 }
+
 func PrintServerSummary() {
 	log.Printf("Catalog path: %v\n", Collector.DataPath)
 	log.Printf("HTTP Port: %v\n", Collector.HttpPort)
@@ -796,13 +808,18 @@ func GetReplicaDB(name string) *sql.DB {
 		//Collector.Projects[name].ReplicaDB = make(sql.DB)
 		//var p structs.Project = Collector.Projects[name]
 		//Collector.Projects[name].ReplicaDB = new(sql.DB)
+		if _, err := os.Stat(Collector.Projects[name].ReplicaPath); os.IsNotExist(err) {
+			//Collector.DataPath = DataPath
+			log.Println("Unable to open replica database: "+Collector.Projects[name].ReplicaPath)
+		}
+
 		Collector.Projects[name].ReplicaDB, err = sql.Open("sqlite3", Collector.Projects[name].ReplicaPath+SqlFlags)
 		if err != nil {
 			log.Fatal(err)
 		}
 		err = Collector.Projects[name].ReplicaDB.Ping()
 		if err != nil {
-			log.Fatalf("Error on opening database connection: %s", err.Error())
+			log.Fatalf("Error on opening database connection: %s\nSqlite path:  %s", err.Error(), Collector.Projects[name].ReplicaPath)
 		}
 		//Collector.Projects[name].ReplicaDB = p.ReplicaDB
 	}
