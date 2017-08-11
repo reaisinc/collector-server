@@ -496,16 +496,25 @@ func query(w http.ResponseWriter, r *http.Request) {
 	where := r.FormValue("where")
 	outFields := r.FormValue("outFields")
 	returnIdsOnly := r.FormValue("returnIdsOnly")
-	var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
+
 	//returnGeometry := r.FormValue("returnGeometry")
 	objectIds := r.FormValue("objectIds")
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query")
+	if false && config.Collector.DefaultDataSource != structs.FILE {
+		w.Header().Set("Content-Type", "application/json")
+		//var response = []byte("{\"objectIdFieldName\":\"OBJECTID\",\"globalIdFieldName\":\"GlobalID\",\"geometryProperties\":{\"shapeAreaFieldName\":\"Shape__Area\",\"shapeLengthFieldName\":\"Shape__Length\",\"units\":\"esriMeters\"},\"features\":[]}")
+		//var response = []byte(`{"objectIdFieldName":"OBJECTID","globalIdFieldName":"GlobalID","geometryProperties":{"shapeLengthFieldName":"","units":"esriMeters"},"features":[]}`)
+		var response = queryDB(name, id, where, outFields, returnIdsOnly, objectIds)
+		w.Write(response)
+		return
+	}
 	//returnIdsOnly = true
 
 	//log.Println(r.FormValue("returnGeometry"))
 	//log.Println(r.FormValue("outFields"))
 	//sql := "select "+outFields + " from " +
 	where = ""
+	var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
 
 	if len(where) > 0 {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/where=" + where)
