@@ -44,6 +44,7 @@ var SqlWalFlags = "?PRAGMA journal_mode=WAL"
 //leasecompliance2016
 var ServiceName string
 var UUID = ""
+var ESRILibraryPath = "d:/bin/stgeometry_sqlite.dll"
 
 //"github.com/gin-gonic/gin"
 //Db is the SQLITE databa se object
@@ -377,6 +378,7 @@ func Initialize() {
 		if err != nil {
 			log.Fatalf("Error on opening database connection: %s", err.Error())
 		}
+
 	}
 
 	if Collector.DefaultDataSource == structs.SQLITE3 {
@@ -387,6 +389,7 @@ func Initialize() {
 		Collector.DatabaseDB = Collector.Configuration
 
 		//once.Do(initDB)
+
 		/*
 			Collector.DatabaseDB, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
 			if err != nil {
@@ -682,10 +685,11 @@ func PrintServerSummaryTable(w http.ResponseWriter) {
 }
 
 func initDB() {
+	log.Println("Registering ESRI extension")
 	sql.Register("sqlite3_with_extensions",
 		&sqlite3.SQLiteDriver{
 			Extensions: []string{
-				"stgeometry_sqlite",
+				ESRILibraryPath, //"stgeometry_sqlite",
 			},
 		})
 }
@@ -810,7 +814,7 @@ func GetReplicaDB(name string) *sql.DB {
 		//Collector.Projects[name].ReplicaDB = new(sql.DB)
 		if _, err := os.Stat(Collector.Projects[name].ReplicaPath); os.IsNotExist(err) {
 			//Collector.DataPath = DataPath
-			log.Println("Unable to open replica database: "+Collector.Projects[name].ReplicaPath)
+			log.Println("Unable to open replica database: " + Collector.Projects[name].ReplicaPath)
 		}
 
 		Collector.Projects[name].ReplicaDB, err = sql.Open("sqlite3", Collector.Projects[name].ReplicaPath+SqlFlags)
@@ -821,8 +825,37 @@ func GetReplicaDB(name string) *sql.DB {
 		if err != nil {
 			log.Fatalf("Error on opening database connection: %s\nSqlite path:  %s", err.Error(), Collector.Projects[name].ReplicaPath)
 		}
+		//try to load the ESRI library
+		once.Do(initDB)
+
+		/*
+			SELECT load_extension( 'stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');
+			SELECT CreateOGCTables();
+			SELECT st_astext(st_point('point(1 1)',4326))
+		*/
+		/*
+			sql := "SELECT load_extension( '" + ESRILibraryPath + "', 'SDE_SQL_funcs_init')"
+			_, err = Collector.Projects[name].ReplicaDB.Exec(sql)
+			if err != nil {
+				log.Printf("Unable to load ESRI "+ESRILibraryPath+" library: %s\n", err.Error())
+			} else {
+				Collector.ESRILibraryLoaded = true
+			}
+		*/
+
 		//Collector.Projects[name].ReplicaDB = p.ReplicaDB
 	}
+	/*
+		sql := "SELECT st_astext(st_point('point(1 1)',4326))"
+		var result string
+		err := Collector.Projects[name].ReplicaDB.QueryRow(sql).Scan(&result)
+
+		if err != nil {
+			log.Printf("Unable to load ESRI "+ESRILibraryPath+" library: %s\n", err.Error())
+		}
+		log.Println(result)
+	*/
+
 	return Collector.Projects[name].ReplicaDB
 }
 

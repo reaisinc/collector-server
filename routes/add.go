@@ -181,7 +181,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		if i.Geometry != nil {
 			log.Println("Checking geometry")
 			var geometry string
-			//geometry = getPoint(i.Geometry.X, i.Geometry.Y)
+			geometry = getESRIPoint(i.Geometry.X, i.Geometry.Y, config.Collector.Projects[name].ReplicaPath)
 			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].ShapeFieldName) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
 			vals = append(vals, geometry)
 			p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
@@ -377,20 +377,42 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 	return response
 }
 
-func getPoint(x float64, y float64) string {
-	point := fmt.Sprintf("%v,%v", x, y)
-	exe := "c:\\gdal\\bin\\sqlite3.exe"
-	db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
-	sql := "SELECT load_extension( 'c:\\gdal\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(" + point + ")',4326));"
+func getESRIPoint(x float64, y float64, db string) string {
+	point := fmt.Sprintf("%v %v", x, y)
+	log.Println(point)
+	exe := "d:\\bin\\sqlite3.exe"
+	//db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
+	sql := "SELECT load_extension( 'D:\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(" + point + ")',3857));"
 	//select st_astext(X'64E610000100000004010C0000000000000080A8B3D7AB1780A8B3D7AB1');
 	args := []string{db, sql}
+	log.Println(args)
 	var err error
 	var out []byte
 	out, err = exec.Command(exe, args...).Output()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
-	fmt.Println(string(out))
-	return "X'" + string(out) + "'"
+	/*
+		log.Println(out[0])
+		log.Println(out[1])
+
+		log.Println(out[2])
+		log.Println(out[len(out)-3])
+		log.Println(out[len(out)-2])
+		log.Println(out[len(out)-1])
+
+		log.Println(len(out))
+		log.Println(len(strings.TrimPrefix(string(out), "\n\r")))
+		log.Println(len(strings.TrimSuffix(string(out), "\n\r")))
+		log.Println(len(strings.Trim(string(out), "\n\r")))
+	*/
+
+	//outStr := string(out)
+	outStr := strings.Trim(string(out), "\n\r")
+	//outStr = strings.TrimSuffix(string(out), "\n\r")
+	//log.Println(len(outStr))
+
+	//fmt.Println(outStr)
+	return "X'" + outStr + "'"
 }
