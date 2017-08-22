@@ -169,16 +169,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["creationDateField"]=
 				config.Collector.Projects[name].Layers[id]["editFieldsInfo"]["editDateField"]
 			*/
-			/*
-				if i.Geometry != nil {
-					var geometry string
-					cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].EditFieldsInfo.CreatorField) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
-					vals = append(vals, geometry)
-					p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
-					i.Attributes["creatorField"] = config.Collector.Username
-					c++
-				}
-			*/
+
 			//for key, j := range i.Geometry {
 			//ST_Polygon('polygon ((52 28, 58 28, 58 23, 52 23, 52 28))', 4326)
 			//ST_Point('point (52 24)', 4326)
@@ -187,6 +178,16 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 
 		}
 
+		if i.Geometry != nil {
+			log.Println("Checking geometry")
+			var geometry string
+			//geometry = getPoint(i.Geometry.X, i.Geometry.Y)
+			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].ShapeFieldName) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+			vals = append(vals, geometry)
+			p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
+			//i.Attributes["creatorField"] = config.Collector.Username
+			c++
+		}
 		//vals = append(vals, "")
 
 		//cols += sep + joinField
@@ -375,10 +376,12 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 	response, _ := json.Marshal(map[string]interface{}{"addResults": results, "updateResults": []string{}, "deleteResults": []string{}})
 	return response
 }
-func getPoint() {
+
+func getPoint(x float64, y float64) string {
+	point := fmt.Sprintf("%v,%v", x, y)
 	exe := "c:\\gdal\\bin\\sqlite3.exe"
 	db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
-	sql := "SELECT load_extension( 'c:\\gdal\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(1 1)',4326));"
+	sql := "SELECT load_extension( 'c:\\gdal\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(" + point + ")',4326));"
 	//select st_astext(X'64E610000100000004010C0000000000000080A8B3D7AB1780A8B3D7AB1');
 	args := []string{db, sql}
 	var err error
@@ -389,4 +392,5 @@ func getPoint() {
 		os.Exit(1)
 	}
 	fmt.Println(string(out))
+	return "X'" + string(out) + "'"
 }

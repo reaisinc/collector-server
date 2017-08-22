@@ -80,6 +80,7 @@ type Layer struct {
 	Oidname        string         `json:"oidname"`
 	Globaloidname  string         `json:"globaloidname"`
 	JoinField      string         `json:"joinField"`
+	ShapeFieldName string         `json:"shapeFieldName"`
 	ID             int            `json:"id"`
 	EditFieldsInfo *EditFieldInfo `json:"editFieldsInfo,omitempty"`
 }
