@@ -2,9 +2,11 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -372,4 +374,19 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 
 	response, _ := json.Marshal(map[string]interface{}{"addResults": results, "updateResults": []string{}, "deleteResults": []string{}})
 	return response
+}
+func getPoint() {
+	exe := "c:\\gdal\\bin\\sqlite3.exe"
+	db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
+	sql := "SELECT load_extension( 'c:\\gdal\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(1 1)',4326));"
+	//select st_astext(X'64E610000100000004010C0000000000000080A8B3D7AB1780A8B3D7AB1');
+	args := []string{db, sql}
+	var err error
+	var out []byte
+	out, err = exec.Command(exe, args...).Output()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	fmt.Println(string(out))
 }
