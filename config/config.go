@@ -1123,6 +1123,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, oidn
 				//break
 			}
 		}
+
 		featureObj.Features = results
 		fields, err = json.Marshal(featureObj)
 		if err != nil {
@@ -1139,6 +1140,7 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, oidn
 		}
 
 		var fields []byte
+
 		err = stmt.QueryRow(catalog, service, layerid, dtype).Scan(&fields)
 		if err != nil {
 			log.Println(err.Error())
@@ -1155,7 +1157,6 @@ func GetArcQuery(catalog string, service string, layerid int, dtype string, oidn
 		var results []structs.Feature
 		for _, i := range featureObj.Features {
 			//if int(i.Attributes["OBJECTID"].(float64)) == objectIdsInt {
-
 			oid := i.Attributes[oidname].(float64)
 			if in_float_array(oid, objectIdsFloat) {
 				//oJoinVal = i.Attributes[oJoinKey]

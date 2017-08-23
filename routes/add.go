@@ -412,7 +412,6 @@ func getESRIPoint(x float64, y float64, db string) string {
 	outStr := strings.Trim(string(out), "\n\r")
 	//outStr = strings.TrimSuffix(string(out), "\n\r")
 	//log.Println(len(outStr))
-
 	//fmt.Println(outStr)
 	return "X'" + outStr + "'"
 }

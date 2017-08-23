@@ -496,15 +496,16 @@ func query(w http.ResponseWriter, r *http.Request) {
 	where := r.FormValue("where")
 	outFields := r.FormValue("outFields")
 	returnIdsOnly := r.FormValue("returnIdsOnly")
+	var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
 
 	//returnGeometry := r.FormValue("returnGeometry")
 	objectIds := r.FormValue("objectIds")
 	log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query")
-	if false && config.Collector.DefaultDataSource != structs.FILE {
+	if config.Collector.DefaultDataSource != structs.FILE {
 		w.Header().Set("Content-Type", "application/json")
 		//var response = []byte("{\"objectIdFieldName\":\"OBJECTID\",\"globalIdFieldName\":\"GlobalID\",\"geometryProperties\":{\"shapeAreaFieldName\":\"Shape__Area\",\"shapeLengthFieldName\":\"Shape__Length\",\"units\":\"esriMeters\"},\"features\":[]}")
 		//var response = []byte(`{"objectIdFieldName":"OBJECTID","globalIdFieldName":"GlobalID","geometryProperties":{"shapeLengthFieldName":"","units":"esriMeters"},"features":[]}`)
-		var response = queryDB(name, id, where, outFields, returnIdsOnly, objectIds)
+		var response = queryDB(name, "FeatureServer", id, where, outFields, returnIdsOnly, objectIds,parentObjectID)
 		w.Write(response)
 		return
 	}
@@ -514,7 +515,6 @@ func query(w http.ResponseWriter, r *http.Request) {
 	//log.Println(r.FormValue("outFields"))
 	//sql := "select "+outFields + " from " +
 	where = ""
-	var parentObjectID = config.Collector.Projects[name].Layers[id].Oidname
 
 	if len(where) > 0 {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/where=" + where)
@@ -523,10 +523,8 @@ func query(w http.ResponseWriter, r *http.Request) {
 		//var response = []byte("{\"objectIdFieldName\":\"OBJECTID\",\"globalIdFieldName\":\"GlobalID\",\"geometryProperties\":{\"shapeAreaFieldName\":\"Shape__Area\",\"shapeLengthFieldName\":\"Shape__Length\",\"units\":\"esriMeters\"},\"features\":[]}")
 		var response = []byte(`{"objectIdFieldName":"OBJECTID","globalIdFieldName":"GlobalID","geometryProperties":{"shapeLengthFieldName":"","units":"esriMeters"},"features":[]}`)
 		w.Write(response)
-
 	} else if returnIdsOnly == "true" {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/objectids")
-
 		response := config.GetArcService(name, "FeatureServer", idInt, "objectids", dbPath)
 		if len(response) > 0 {
 			w.Header().Set("Content-Type", "application/json")
@@ -537,23 +535,19 @@ func query(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if len(objectIds) > 0 {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/objectIds=" + objectIds)
-
 		//only get the select objectIds
 		//response := config.GetArcService(name, "FeatureServer", idInt, "query")
 		response := config.GetArcQuery(name, "FeatureServer", idInt, "query", parentObjectID, objectIds, dbPath)
-
 		if len(response) > 0 {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(response)
 		} else {
 			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
 			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
-
 		}
 		//if returnGeometry == "false" &&
 	} else if strings.Index(outFields, parentObjectID) > -1 { //r.FormValue("returnGeometry") == "false" && r.FormValue("outFields") == "OBJECTID" {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/outfields=" + outFields)
-
 		response := config.GetArcService(name, "FeatureServer", idInt, "outfields", dbPath)
 		if len(response) > 0 {
 			w.Header().Set("Content-Type", "application/json")
@@ -564,7 +558,6 @@ func query(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/else")
-
 		response := config.GetArcService(name, "FeatureServer", idInt, "query", dbPath)
 		if len(response) > 0 {
 			w.Header().Set("Content-Type", "application/json")
