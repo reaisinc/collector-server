@@ -505,7 +505,8 @@ func query(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		//var response = []byte("{\"objectIdFieldName\":\"OBJECTID\",\"globalIdFieldName\":\"GlobalID\",\"geometryProperties\":{\"shapeAreaFieldName\":\"Shape__Area\",\"shapeLengthFieldName\":\"Shape__Length\",\"units\":\"esriMeters\"},\"features\":[]}")
 		//var response = []byte(`{"objectIdFieldName":"OBJECTID","globalIdFieldName":"GlobalID","geometryProperties":{"shapeLengthFieldName":"","units":"esriMeters"},"features":[]}`)
-		var response = queryDB(name, "FeatureServer", id, where, outFields, returnIdsOnly, objectIds,parentObjectID)
+		var response = queryDB(name, "FeatureServer", id, where, outFields, returnIdsOnly, objectIds, parentObjectID)
+		//log.Println(string(response))
 		w.Write(response)
 		return
 	}
