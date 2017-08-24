@@ -337,7 +337,7 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 		//i.Attributes["objectId"] = objectid
 		i.Attributes[parentObjectID] = objectid
 		//i.Attributes["globalId"]=strings.ToUpper(i.Attributes["globalId"])
-		if len(i.Attributes[joinField].(string)) > 0 {
+		if i.Attributes[joinField] != nil && len(i.Attributes[joinField].(string)) > 0 {
 			//input := strings.ToUpper(i.Attributes[joinField].(string))
 			//tmpStr := input[1 : len(input)-1]
 			i.Attributes[joinField] = strings.ToUpper(i.Attributes[joinField].(string))
@@ -379,13 +379,13 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 
 func getESRIPoint(x float64, y float64, db string) string {
 	point := fmt.Sprintf("%v %v", x, y)
-	log.Println(point)
+	//log.Println(point)
 	exe := "d:\\bin\\sqlite3.exe"
 	//db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
 	sql := "SELECT load_extension( 'D:\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(" + point + ")',3857));"
 	//select st_astext(X'64E610000100000004010C0000000000000080A8B3D7AB1780A8B3D7AB1');
 	args := []string{db, sql}
-	log.Println(args)
+	//log.Println(args)
 	var err error
 	var out []byte
 	out, err = exec.Command(exe, args...).Output()

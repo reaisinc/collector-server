@@ -413,7 +413,7 @@ func queryDB(name string, service string, id string, where string, outFields str
 	var fields []byte
 	//var res []byte
 
-	var fieldsArr []structs.Field
+	//var fieldsArr []structs.Field
 	var results []structs.Feature
 	//var db *sql.DB
 	//var rows *sql.Rows
@@ -500,20 +500,33 @@ func queryDB(name string, service string, id string, where string, outFields str
 
 		}
 	*/
-	sqlStr = "select json from " + config.Collector.Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
-	//Db := GetDataBase(Collector.Projects[catalog])
-	stmt, err := config.Collector.Configuration.Prepare(sqlStr)
-	if err != nil {
-		log.Println(err.Error())
+	if config.Collector.DefaultDataSource != structs.FILE {
+
+		sqlStr = "select json from " + config.Collector.Schema + "services where service=$1 and name=$2 and layerid=$3 and type=$4"
+		//Db := GetDataBase(Collector.Projects[catalog])
+		stmt, err := config.Collector.Configuration.Prepare(sqlStr)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		//name string, id string, where string, outFields string, returnIdsOnly string, objectIds
+		err = stmt.QueryRow(name, service, id, "query").Scan(&fields)
+		if err != nil {
+			log.Println(err.Error())
+			//w.Header().Set("Content-Type", "application/json")
+			//w.Write([]byte("{\"fields\":[],\"relatedRecordGroups\":[]}"))
+			return []byte("")
+		}
+	} else {
+		configFile := config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json"
+		fields, err = ioutil.ReadFile(configFile)
+		if err != nil {
+			fmt.Printf("// error while reading file %s\n", configFile)
+			fmt.Printf("File error: %v\n", err)
+			os.Exit(1)
+		}
+
 	}
-	//name string, id string, where string, outFields string, returnIdsOnly string, objectIds
-	err = stmt.QueryRow(name, service, id, "query").Scan(&fields)
-	if err != nil {
-		log.Println(err.Error())
-		//w.Header().Set("Content-Type", "application/json")
-		//w.Write([]byte("{\"fields\":[],\"relatedRecordGroups\":[]}"))
-		return []byte("")
-	}
+
 	var featureObj structs.FeatureTable
 	//var fieldsArr []structs.Field
 	err = json.Unmarshal(fields, &featureObj)
@@ -538,6 +551,39 @@ func queryDB(name string, service string, id string, where string, outFields str
 	if len(where) > 0 {
 		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/where=" + where)
 		sqlStr = "select " + outFields + " from " + tableName + " where " + where
+		idx := strings.Index(where, " NOT IN (")
+		if idx > 0 {
+			var objectIdsFloat = []float64{}
+			//log.Println(where[idx+9 : len(where)-1])
+			objectIdsArr := strings.Split(where[idx+9:len(where)-1], ",")
+
+			for _, i := range objectIdsArr {
+				j, err := strconv.ParseFloat(i, 64)
+				if err != nil {
+					panic(err)
+				}
+				objectIdsFloat = append(objectIdsFloat, j)
+			}
+			for _, i := range featureObj.Features {
+				//if int(i.Attributes["OBJECTID"].(float64)) == objectIdsInt {
+				oid := i.Attributes[oidname].(float64)
+				if !in_float_array(oid, objectIdsFloat) {
+					//oJoinVal = i.Attributes[oJoinKey]
+					results = append(results, i)
+					//break
+				}
+			}
+			for i := len(featureObj.Fields) - 1; i >= 0; i-- {
+				if featureObj.Fields[i].Name != objectIDName && featureObj.Fields[i].Name != globalIdName {
+					//delete(featureObj.Fields, k)
+					featureObj.Fields[len(featureObj.Fields)-1], featureObj.Fields[i] = featureObj.Fields[i], featureObj.Fields[len(featureObj.Fields)-1]
+					featureObj.Fields = featureObj.Fields[:len(featureObj.Fields)-1]
+				}
+			}
+
+			featureObj.Features = results
+		}
+		//OBJECTID NOT IN ()
 		/*
 			for _, i := range featureObj.Features {
 				//if int(i.Attributes["OBJECTID"].(float64)) == objectIdsInt {
@@ -567,6 +613,12 @@ func queryDB(name string, service string, id string, where string, outFields str
 					delete(i.Attributes, k)
 				}
 			}
+			/*
+				if oidname != "OBJECTID" {
+					i.Attributes["OBJECTID"] = i.Attributes[oidname]
+					delete(i.Attributes, oidname)
+				}
+			*/
 			//for i := 0; i < len(i.Attributes); i++ {
 
 			//}
@@ -579,11 +631,11 @@ func queryDB(name string, service string, id string, where string, outFields str
 			//break
 			//}
 		}
-		for i := len(fieldsArr) - 1; i >= 0; i-- {
-			if fieldsArr[i].Name != objectIDName && fieldsArr[i].Name != globalIdName {
-				//delete(fieldsArr, k)
-				fieldsArr[len(fieldsArr)-1], fieldsArr[i] = fieldsArr[i], fieldsArr[len(fieldsArr)-1]
-				fieldsArr = fieldsArr[:len(fieldsArr)-1]
+		for i := len(featureObj.Fields) - 1; i >= 0; i-- {
+			if featureObj.Fields[i].Name != objectIDName && featureObj.Fields[i].Name != globalIdName {
+				//delete(featureObj.Fields, k)
+				featureObj.Fields[len(featureObj.Fields)-1], featureObj.Fields[i] = featureObj.Fields[i], featureObj.Fields[len(featureObj.Fields)-1]
+				featureObj.Fields = featureObj.Fields[:len(featureObj.Fields)-1]
 			}
 		}
 
@@ -650,11 +702,14 @@ func queryDB(name string, service string, id string, where string, outFields str
 		}
 
 		//for i, f := range fieldsArr { // = fieldObj.Fields
-		for i := len(fieldsArr) - 1; i >= 0; i-- {
-			if fieldsArr[i].Name != objectIDName && fieldsArr[i].Name != globalIdName {
-				//delete(fieldsArr, k)
-				fieldsArr[len(fieldsArr)-1], fieldsArr[i] = fieldsArr[i], fieldsArr[len(fieldsArr)-1]
-				fieldsArr = fieldsArr[:len(fieldsArr)-1]
+		for i := len(featureObj.Fields) - 1; i >= 0; i-- {
+			if featureObj.Fields[i].Name != objectIDName && featureObj.Fields[i].Name != globalIdName {
+				//delete(featureObj.Fields, k)
+				featureObj.Fields[len(featureObj.Fields)-1], featureObj.Fields[i] = featureObj.Fields[i], featureObj.Fields[len(featureObj.Fields)-1]
+				featureObj.Fields = featureObj.Fields[:len(featureObj.Fields)-1]
+			} else {
+				//featureObj.Fields[i].Nullable = nil
+				//featureObj.Fields[i].Editable = nil
 			}
 		}
 
@@ -669,7 +724,7 @@ func queryDB(name string, service string, id string, where string, outFields str
 			}
 		*/
 	} else {
-		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/else")
+		log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query/all")
 		sqlStr = "select " + outFields + " from " + tableName
 		/*
 			for _, i := range featureObj.Features {

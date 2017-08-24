@@ -114,9 +114,9 @@ type TableField struct {
 type Field struct {
 	Domain       *Domain     `json:"domain"`
 	Name         string      `json:"name"`
-	Nullable     bool        `json:"nullable"`
+	Nullable     bool       `json:"nullable,omitempty"`
 	DefaultValue interface{} `json:"defaultValue"`
-	Editable     bool        `json:"editable"`
+	Editable     bool       `json:"editable,omitempty"`
 	Alias        string      `json:"alias"`
 	SqlType      string      `json:"sqlType"`
 	Type         string      `json:"type"`
