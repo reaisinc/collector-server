@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -504,15 +505,15 @@ func query(w http.ResponseWriter, r *http.Request) {
 	objectIds := r.FormValue("objectIds")
 
 	/*
-<<<<<<< HEAD
-		log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
-		http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
-		return
-=======
-	log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
-	http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
-	return
->>>>>>> f2ee24de79d7df3b1f9961b4452a18dfc07313b6
+		<<<<<<< HEAD
+				log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
+				http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
+				return
+		=======
+			log.Println("Sending: " + config.Collector.DataPath + string(os.PathSeparator) + name + string(os.PathSeparator) + "services" + string(os.PathSeparator) + "FeatureServer." + id + ".query.json")
+			http.ServeFile(w, r, config.Collector.DataPath+string(os.PathSeparator)+name+string(os.PathSeparator)+"services"+string(os.PathSeparator)+"FeatureServer."+id+".query.json")
+			return
+		>>>>>>> f2ee24de79d7df3b1f9961b4452a18dfc07313b6
 	*/
 
 	//log.Println("/arcgis/rest/services/" + name + "/FeatureServer/" + id + "/query")
@@ -952,11 +953,11 @@ func runSqliteCmd(sql string, db string) string {
 	var out []byte
 	out, err = exec.Command(exe, args...).Output()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		log.Println("Unable to execute sql command in sqlite3:  " + err.Error())
 	}
-	if len(out) > 0 {
-		log.Println(string(out))
-	}
+	//if len(out) > 0 {
+	//	log.Println(string(out))
+	//}
 
 	return strings.Trim(string(out), "\n\r")
 }

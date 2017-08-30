@@ -222,8 +222,10 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 			log.Println(sql)
 			//convert ? to actual delimited values
 			//need to update spatial index
-			err := runSqliteCmd(sql, config.Collector.Projects[name].ReplicaPath)
-			log.Println(err)
+			output := runSqliteCmd(sql, config.Collector.Projects[name].ReplicaPath)
+			if len(output) > 0 {
+				log.Println(output)
+			}
 			c++
 		}
 
@@ -425,6 +427,7 @@ func getESRIPoint(x float64, y float64, db string) string {
 	//fmt.Println(outStr)
 	return "X'" + outStr + "'"
 }
+
 /*
 func updateSpatialIndex(x float64, y float64, db string) string {
 	point := fmt.Sprintf("%v %v", x, y)
