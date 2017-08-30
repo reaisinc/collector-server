@@ -178,16 +178,6 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 
 		}
 
-		if i.Geometry != nil {
-			log.Println("Checking geometry")
-			var geometry string
-			geometry = getESRIPoint(i.Geometry.X, i.Geometry.Y, config.Collector.Projects[name].ReplicaPath)
-			cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].ShapeFieldName) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
-			vals = append(vals, geometry)
-			p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
-			//i.Attributes["creatorField"] = config.Collector.Username
-			c++
-		}
 		//vals = append(vals, "")
 
 		//cols += sep + joinField
@@ -197,7 +187,7 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 		log.Println("insert into " + config.Collector.Schema + tableName + "(" + cols + ") values(" + p + ")")
 		log.Print(vals)
 
-		sql := "insert into " + config.Collector.Schema + tableName + "(" + cols + ") values(" + p + ")"
+		sql = "insert into " + config.Collector.Schema + tableName + "(" + cols + ") values(" + p + ")"
 		/*
 			stmt, err := config.GetReplicaDB(name).Prepare(sql)
 			if err != nil {
@@ -217,6 +207,26 @@ func Adds(name string, id string, parentTableName string, tableName string, adds
 				}
 			}
 		}
+		if i.Geometry != nil {
+			//log.Println("Checking geometry")
+			//var geometry string
+			//geometry = getESRIPoint(i.Geometry.X, i.Geometry.Y, config.Collector.Projects[name].ReplicaPath)
+			geometry := fmt.Sprintf("st_point('point(%v %v)',3857)", i.Geometry.X, i.Geometry.Y)
+			//cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].ShapeFieldName) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+			//p += sep + geometry
+			//vals = append(vals, geometry)
+			//p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
+			//i.Attributes["creatorField"] = config.Collector.Username
+			objectidstr := strconv.Itoa(objectid)
+			sql = "update " + config.Collector.Schema + tableName + " set " + config.Collector.Projects[name].Layers[id].ShapeFieldName + "=" + geometry + " where " + parentObjectID + "=" + objectidstr
+			log.Println(sql)
+			//convert ? to actual delimited values
+			//need to update spatial index
+			err := runSqliteCmd(sql, config.Collector.Projects[name].ReplicaPath)
+			log.Println(err)
+			c++
+		}
+
 		//stmt.Close()
 
 		if config.Collector.DefaultDataSource == structs.PGSQL {
@@ -337,7 +347,7 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 		//i.Attributes["objectId"] = objectid
 		i.Attributes[parentObjectID] = objectid
 		//i.Attributes["globalId"]=strings.ToUpper(i.Attributes["globalId"])
-		if len(i.Attributes[joinField].(string)) > 0 {
+		if i.Attributes[joinField] != nil && len(i.Attributes[joinField].(string)) > 0 {
 			//input := strings.ToUpper(i.Attributes[joinField].(string))
 			//tmpStr := input[1 : len(input)-1]
 			i.Attributes[joinField] = strings.ToUpper(i.Attributes[joinField].(string))
@@ -379,13 +389,13 @@ func AddsFile(name string, id string, parentTableName string, addsTxt string, jo
 
 func getESRIPoint(x float64, y float64, db string) string {
 	point := fmt.Sprintf("%v %v", x, y)
-	log.Println(point)
+	//log.Println(point)
 	exe := "d:\\bin\\sqlite3.exe"
 	//db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
 	sql := "SELECT load_extension( 'D:\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(" + point + ")',3857));"
 	//select st_astext(X'64E610000100000004010C0000000000000080A8B3D7AB1780A8B3D7AB1');
 	args := []string{db, sql}
-	log.Println(args)
+	//log.Println(args)
 	var err error
 	var out []byte
 	out, err = exec.Command(exe, args...).Output()
@@ -415,3 +425,29 @@ func getESRIPoint(x float64, y float64, db string) string {
 	//fmt.Println(outStr)
 	return "X'" + outStr + "'"
 }
+/*
+func updateSpatialIndex(x float64, y float64, db string) string {
+	point := fmt.Sprintf("%v %v", x, y)
+	//log.Println(point)
+	exe := "d:\\bin\\sqlite3.exe"
+	//db := "catalogs\\bristowmembers\\replicas\\bristowmembers.geodatabase"
+	sql := "SELECT load_extension( 'D:\\bin\\stgeometry_sqlite.dll', 'SDE_SQL_funcs_init');select hex(st_point('point(" + point + ")',3857));"
+	//select st_astext(X'64E610000100000004010C0000000000000080A8B3D7AB1780A8B3D7AB1');
+	args := []string{db, sql}
+	//log.Println(args)
+	var err error
+	var out []byte
+	out, err = exec.Command(exe, args...).Output()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		//os.Exit(1)
+	}
+
+	//outStr := string(out)
+	outStr := strings.Trim(string(out), "\n\r")
+	//outStr = strings.TrimSuffix(string(out), "\n\r")
+	//log.Println(len(outStr))
+	//fmt.Println(outStr)
+	return "X'" + outStr + "'"
+}
+*/

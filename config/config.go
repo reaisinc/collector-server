@@ -685,7 +685,7 @@ func PrintServerSummaryTable(w http.ResponseWriter) {
 }
 
 func initDB() {
-	log.Println("Registering ESRI extension")
+	//log.Println("Registering ESRI extension")
 	sql.Register("sqlite3_with_extensions",
 		&sqlite3.SQLiteDriver{
 			Extensions: []string{

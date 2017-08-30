@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -15,7 +16,8 @@ import (
 
 func Updates(name string, id string, parentTableName string, tableName string, updateTxt string, globalIdName string, joinField string, parentObjectID string) []byte {
 	//log.Println(updateTxt)
-	var updates structs.Record
+	//var updates structs.Record
+	var updates []structs.Feature
 	decoder := json.NewDecoder(strings.NewReader(updateTxt)) //r.Body
 
 	err := decoder.Decode(&updates)
@@ -71,7 +73,6 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 				}
 				sep = ","
 				//fmt.Println(j)
-
 				//}
 			}
 		}
@@ -166,6 +167,26 @@ func Updates(name string, id string, parentTableName string, tableName string, u
 		result["success"] = true
 		result["globalId"] = nil
 		results = append(results, result)
+
+		if i.Geometry != nil {
+			//log.Println("Checking geometry")
+			//var geometry string
+			//geometry = getESRIPoint(i.Geometry.X, i.Geometry.Y, config.Collector.Projects[name].ReplicaPath)
+			geometry := fmt.Sprintf("st_point('point(%v %v)',3857)", i.Geometry.X, i.Geometry.Y)
+			//cols += sep + config.DblQuote(config.Collector.Projects[name].Layers[id].ShapeFieldName) //config.Collector.Projects[name].Layers[id]["editFieldsInfo"][key]
+			//p += sep + geometry
+			//vals = append(vals, geometry)
+			//p += sep + config.GetParam(config.Collector.DefaultDataSource, c)
+			//i.Attributes["creatorField"] = config.Collector.Username
+			objectidstr := strconv.Itoa(objectid)
+			sql = "update " + config.Collector.Schema + tableName + " set " + config.Collector.Projects[name].Layers[id].ShapeFieldName + "=" + geometry + " where " + parentObjectID + "=" + objectidstr
+			log.Println(sql)
+			//convert ? to actual delimited values
+			//need to update spatial index
+			err := runSqliteCmd(sql, config.Collector.Projects[name].ReplicaPath)
+			log.Println(err)
+			//c++
+		}
 
 		/*
 			select pos-1  from services,jsonb_array_elements(json->'features') with ordinality arr(elem,pos) where type='query' and layerId=0 and elem->'attributes'->>'OBJECTID'='$1')::int

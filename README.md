@@ -27,6 +27,14 @@ First, create your database using collector-tools.  The data should be created i
 
 To view the various configuration files, open your browser and go to http://localhost.  You can customize the display fields as well as set layers to editable/non-editable.
 
+To add/edit shapes, you must have sqlite3.exe and the following .dlls from ArcMap installed in the root folder of the server executable:
+stgeometry_sqlite.dll
+icudt52.dll
+icuio52.dll
+icuin52.dll
+icuuc52.dll
+
+
 ### Docker
 Docker instructions
 ````
