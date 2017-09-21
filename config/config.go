@@ -175,7 +175,7 @@ func Initialize() {
 					DataPath, _ = filepath.Abs(os.Args[i+1])
 				} else {
 					fmt.Println("Invalid data path to catalogs entered: " + string(os.Args[i+1][0]))
-					os.Exit(1)
+					//os.Exit(1)
 				}
 				//ServiceName = filepath.Base(os.Args[i+1])
 			} else if os.Args[i] == "-h" {
@@ -297,7 +297,7 @@ func Initialize() {
 		DataPath = DataPath + string(os.PathSeparator) + "catalogs"
 		if _, err := os.Stat(DataPath + string(os.PathSeparator) + "config.json"); os.IsNotExist(err) {
 			fmt.Println("Unable to locate catalogs directory in data path: " + DataPath)
-			os.Exit(0)
+			//os.Exit(0)
 		}
 	}
 
@@ -372,11 +372,13 @@ func Initialize() {
 		//connect to configuration sqlite database
 		Collector.Configuration, err = sql.Open("sqlite3", Collector.SqliteDb+SqlFlags)
 		if err != nil {
-			log.Fatal(err)
+			//log.Fatal(err)
+			log.Println(err)
 		}
 		err = Collector.Configuration.Ping()
 		if err != nil {
-			log.Fatalf("Error on opening database connection: %s", err.Error())
+			log.Printf("Error on opening database connection: %s", err.Error())
+			//log.Fatalf("Error on opening database connection: %s", err.Error())
 		}
 
 	}
@@ -777,7 +779,7 @@ func LoadConfigurationFromFile(DataPath string) {
 	if err1 != nil {
 		fmt.Printf("// error while reading file %s\n", configFile)
 		fmt.Printf("File error: %v\n", err1)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	err2 := json.Unmarshal(file, &Collector)
